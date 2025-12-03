@@ -79,6 +79,8 @@ import com.akinalpfdn.sortue.ui.components.AboutOverlay
 import com.akinalpfdn.sortue.ui.components.AmbientBackground
 import com.akinalpfdn.sortue.viewmodels.GameViewModel
 import kotlin.random.Random
+import androidx.compose.ui.platform.LocalContext
+import com.akinalpfdn.sortue.utils.WinMessages
 
 @Composable
 fun GameView(vm: GameViewModel = viewModel()) {
@@ -375,8 +377,9 @@ fun TileView(
 
 @Composable
 fun PremiumWinOverlay(onReplay: () -> Unit, onNext: () -> Unit) {
-    val title = "Magnificent!"
-    val subtitle = "You have restored order to the chaos."
+    val context = LocalContext.current
+    val title = remember { WinMessages.getTitles(context).random() }
+    val subtitle = remember { WinMessages.getSubtitles(context).random() }
 
     Box(
         modifier = Modifier
