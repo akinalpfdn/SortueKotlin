@@ -1,20 +1,16 @@
 package com.akinalpfdn.sortue.ui.views
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -34,8 +30,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.Window
@@ -49,6 +45,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -64,6 +62,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -73,16 +72,13 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lint.kotlin.metadata.Visibility
 import com.akinalpfdn.sortue.R
 import com.akinalpfdn.sortue.models.GameStatus
 import com.akinalpfdn.sortue.models.Tile
 import com.akinalpfdn.sortue.ui.components.AboutOverlay
 import com.akinalpfdn.sortue.ui.components.AmbientBackground
-// Removed external WinOverlay import to use the local custom implementation
 import com.akinalpfdn.sortue.viewmodels.GameViewModel
-import kotlin.math.cos
-import kotlin.math.sin
+import kotlin.random.Random
 
 @Composable
 fun GameView(vm: GameViewModel = viewModel()) {
@@ -94,18 +90,32 @@ fun GameView(vm: GameViewModel = viewModel()) {
     val currentLevel by vm.currentLevel.collectAsState()
 
     var showAbout by remember { mutableStateOf(false) }
+    var showWinOverlay by remember { mutableStateOf(false) }
+
+    // Logic: Delay the Win Overlay by 2 seconds to show Confetti
+    LaunchedEffect(status) {
+        if (status == GameStatus.WON) {
+            // Wait 2 seconds before showing the glass card
+            kotlinx.coroutines.delay(2000)
+            showWinOverlay = true
+        } else {
+            showWinOverlay = false
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // Background layer
-        Box(modifier = Modifier.fillMaxSize().background(Color.White))
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White))
         AmbientBackground()
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(vertical = 20.dp)
-                // Blur effect to match Swift's .blur(radius: (vm.status == .won || showAbout) ? 5 : 0)
-                .blur(if (status == GameStatus.WON || showAbout) 5.dp else 0.dp),
+                // Only blur when the overlay is actually visible
+                .blur(if (showWinOverlay || showAbout) 5.dp else 0.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // Header Section
@@ -115,10 +125,9 @@ fun GameView(vm: GameViewModel = viewModel()) {
                     .padding(horizontal = 16.dp, vertical = 28.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Status Icon with click animation
                 IconButton(
                     onClick = { showAbout = true },
-                    modifier = Modifier.size(44.dp) // Resetting size to let StatusIcon handle it
+                    modifier = Modifier.size(44.dp)
                 ) {
                     StatusIcon(status = status)
                 }
@@ -133,7 +142,13 @@ fun GameView(vm: GameViewModel = viewModel()) {
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = stringResource(R.string.level_display, currentLevel, gridDimension, gridDimension, moves).uppercase(),
+                        text = stringResource(
+                            R.string.level_display,
+                            currentLevel,
+                            gridDimension,
+                            gridDimension,
+                            moves
+                        ).uppercase(),
                         style = MaterialTheme.typography.labelSmall,
                         color = Color.Gray,
                         letterSpacing = 0.5.sp
@@ -162,8 +177,6 @@ fun GameView(vm: GameViewModel = viewModel()) {
             Box(
                 modifier = Modifier
                     .padding(16.dp)
-                    // Matches Swift: .shadow(color: .black.opacity(0.05), radius: 20, x: 0, y: 10)
-                    //.shadow(elevation = 20.dp, shape = RoundedCornerShape(24.dp), spotColor = Color.Black.copy(alpha = 0.2f))
                     .clip(RoundedCornerShape(24.dp))
                     .background(Color.Transparent)
                     .padding(16.dp)
@@ -175,7 +188,6 @@ fun GameView(vm: GameViewModel = viewModel()) {
                     userScrollEnabled = false
                 ) {
                     itemsIndexed(tiles, key = { _, it -> it.id }) { index, tile ->
-                        // Wrapper box for animation modifier
                         Box(modifier = Modifier.animateItem()) {
                             TileView(
                                 tile = tile,
@@ -192,14 +204,13 @@ fun GameView(vm: GameViewModel = viewModel()) {
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Transparent Modern Slider
+            // Slider
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 32.dp, vertical = 10.dp), // More side padding for a centered look
+                    .padding(horizontal = 32.dp, vertical = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                // Label & Value Row
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -218,16 +229,14 @@ fun GameView(vm: GameViewModel = viewModel()) {
                         text = "${gridDimension}x${gridDimension}",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF3F51B5) // Indigo
+                        color = Color(0xFF3F51B5)
                     )
                 }
 
-                // Slider Row
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Small Grid Icon
                     Icon(
                         imageVector = Icons.Filled.Window,
                         contentDescription = null,
@@ -252,13 +261,12 @@ fun GameView(vm: GameViewModel = viewModel()) {
                         colors = SliderDefaults.colors(
                             thumbColor = Color(0xFF3F51B5),
                             activeTrackColor = Color(0xFF3F51B5),
-                            inactiveTrackColor = Color(0xFF3F51B5).copy(alpha = 0.15f), // Very subtle track
-                            activeTickColor = Color.Transparent, // Hides the dots for a clean look
+                            inactiveTrackColor = Color(0xFF3F51B5).copy(alpha = 0.15f),
+                            activeTickColor = Color.Transparent,
                             inactiveTickColor = Color.Transparent
                         )
                     )
 
-                    // Large Grid Icon
                     Icon(
                         imageVector = Icons.Filled.GridOn,
                         contentDescription = null,
@@ -270,7 +278,13 @@ fun GameView(vm: GameViewModel = viewModel()) {
         }
 
         // Overlays
+
+        // Show Confetti immediately when WON
         if (status == GameStatus.WON) {
+            ConfettiSystem()
+        }
+
+        if (showWinOverlay) {
             PremiumWinOverlay(
                 onReplay = { vm.startNewGame(preserveColors = true) },
                 onNext = {
@@ -282,10 +296,6 @@ fun GameView(vm: GameViewModel = viewModel()) {
 
         if (showAbout) {
             AboutOverlay(onDismiss = { showAbout = false })
-        }
-
-        if (status == GameStatus.ANIMATING) {
-            ParticleSystem()
         }
     }
 }
@@ -299,33 +309,16 @@ fun TileView(
     gridWidth: Int,
     onClick: () -> Unit
 ) {
-    // Logic to calculate staggered delay based on grid position (matches Swift: delay = (x + y) * 0.05)
     val x = index % gridWidth
     val y = index / gridWidth
-    val delay = (x + y) * 50 // 0.05s = 50ms
+    val delay = (x + y) * 50
 
-    // Scale animation with spring
     val scale = remember { Animatable(1f) }
-
-    // Y-Offset animation for the "jump" effect
     val offsetY = remember { Animatable(0f) }
 
     LaunchedEffect(isWon) {
         if (isWon) {
-            // Initial delay based on position
             kotlinx.coroutines.delay(delay.toLong())
-
-            // Parallel animation: Scale up and move up
-            androidx.compose.animation.core.animate(
-                initialValue = 0f,
-                targetValue = 1f,
-                animationSpec = spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow)
-            ) { value, _ ->
-                // Simulate the Swift spring animation
-                // Scale 1.0 -> 1.1
-                // Offset 0 -> -10
-            }
-            // Simplified for Compose:
             scale.animateTo(1.1f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow))
             offsetY.animateTo(-10f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow))
         } else {
@@ -334,7 +327,6 @@ fun TileView(
         }
     }
 
-    // React to selection changes immediately
     LaunchedEffect(isSelected) {
         if (!isWon) {
             scale.animateTo(if (isSelected) 0.9f else 1.0f)
@@ -367,33 +359,33 @@ fun TileView(
     }
 }
 
-// Replaces the imported WinOverlay to match Swift's "Premium Glass Card"
 @Composable
 fun PremiumWinOverlay(onReplay: () -> Unit, onNext: () -> Unit) {
-    // Placeholder for random messages (Swift uses WinMessages struct)
     val title = "Magnificent!"
     val subtitle = "You have restored order to the chaos."
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.2f)) // Dim background
-            .clickable(enabled = false) {}, // Block clicks
+            .background(Color.Black.copy(alpha = 0.2f))
+            .clickable(enabled = false) {},
         contentAlignment = Alignment.Center
     ) {
-        // Glass Card
         Column(
             modifier = Modifier
                 .padding(32.dp)
-                .shadow(elevation = 30.dp, shape = RoundedCornerShape(32.dp), spotColor = Color.Black.copy(alpha = 0.25f))
+                .shadow(
+                    elevation = 30.dp,
+                    shape = RoundedCornerShape(32.dp),
+                    spotColor = Color.Black.copy(alpha = 0.25f)
+                )
                 .clip(RoundedCornerShape(32.dp))
-                .background(Color.White.copy(alpha = 0.85f)) // Approximate UltraThinMaterial
+                .background(Color.White.copy(alpha = 0.85f))
                 .border(1.dp, Color.White.copy(alpha = 0.4f), RoundedCornerShape(32.dp))
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
-            // Animated Icon Gradient
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.padding(top = 10.dp)
@@ -403,20 +395,22 @@ fun PremiumWinOverlay(onReplay: () -> Unit, onNext: () -> Unit) {
                         .size(80.dp)
                         .background(
                             brush = Brush.linearGradient(
-                                colors = listOf(Color(0xFF3F51B5).copy(alpha = 0.2f), Color(0xFF9C27B0).copy(alpha = 0.2f))
+                                colors = listOf(
+                                    Color(0xFF3F51B5).copy(alpha = 0.2f),
+                                    Color(0xFF9C27B0).copy(alpha = 0.2f)
+                                )
                             ),
                             shape = CircleShape
                         )
                 )
                 Icon(
-                    imageVector = Icons.Filled.Star, // Sparkles replacement
+                    imageVector = Icons.Filled.Star,
                     contentDescription = null,
                     modifier = Modifier.size(36.dp),
-                    tint = Color(0xFF3F51B5) // Or use a shader brush for gradient tint if advanced needed
+                    tint = Color(0xFF3F51B5)
                 )
             }
 
-            // Typography
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -424,7 +418,7 @@ fun PremiumWinOverlay(onReplay: () -> Unit, onNext: () -> Unit) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.headlineMedium.copy(
-                        fontFamily = FontFamily.Serif, // Matches Swift "Serif" design
+                        fontFamily = FontFamily.Serif,
                         fontWeight = FontWeight.Medium
                     ),
                     color = Color.Black
@@ -438,12 +432,10 @@ fun PremiumWinOverlay(onReplay: () -> Unit, onNext: () -> Unit) {
                 )
             }
 
-            // Actions
             Row(
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Secondary Action (Replay)
                 IconButton(
                     onClick = onReplay,
                     modifier = Modifier
@@ -451,19 +443,18 @@ fun PremiumWinOverlay(onReplay: () -> Unit, onNext: () -> Unit) {
                         .background(Color.Gray.copy(alpha = 0.1f), CircleShape)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Refresh, // Arrow Counterclockwise replacement
+                        imageVector = Icons.Filled.Refresh,
                         contentDescription = null,
                         tint = Color.Black.copy(alpha = 0.8f)
                     )
                 }
 
-                // Primary Action (Next)
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .height(50.dp)
                         .shadow(8.dp, CircleShape, spotColor = Color.Black.copy(alpha = 0.2f))
-                        .background(Color.Black.copy(alpha = 0.7f), CircleShape) // Primary opacity 0.5 dark
+                        .background(Color.Black.copy(alpha = 0.7f), CircleShape)
                         .clickable { onNext() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -492,11 +483,7 @@ fun PremiumWinOverlay(onReplay: () -> Unit, onNext: () -> Unit) {
 }
 
 @Composable
-fun CircleButton(
-    icon: ImageVector,
-    onClick: () -> Unit,
-    enabled: Boolean = true
-) {
+fun CircleButton(icon: ImageVector, onClick: () -> Unit, enabled: Boolean = true) {
     IconButton(
         onClick = onClick,
         enabled = enabled,
@@ -525,13 +512,13 @@ fun StatusIcon(status: GameStatus) {
     ) {
         if (status == GameStatus.PREVIEW) {
             Icon(
-                imageVector = Icons.Filled.Visibility, // Eye icon
+                imageVector = Icons.Filled.Visibility,
                 contentDescription = null,
-                tint = Color(0xFF3F51B5) // Indigo
+                tint = Color(0xFF3F51B5)
             )
         } else {
             Icon(
-                imageVector = Icons.Filled.Settings, // Placeholder for Grid 2x2
+                imageVector = Icons.Filled.Settings,
                 contentDescription = null,
                 tint = Color.Black
             )
@@ -539,36 +526,93 @@ fun StatusIcon(status: GameStatus) {
     }
 }
 
-@Composable
-fun ParticleSystem() {
-    val time = remember { mutableStateOf(0f) }
+// ----------------------------------------------------------------
+// Fixed Confetti System
+// ----------------------------------------------------------------
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            withFrameMillis { frameTime ->
-                time.value = (frameTime / 1000f)
+// Use a class with MutableState properties so Compose triggers redraws automatically
+class ConfettiParticle(
+    initialX: Float,
+    initialY: Float,
+    val vx: Float,
+    val vy: Float,
+    val color: Color,
+    val size: Float
+) {
+    // These properties are observable by Compose
+    var x by mutableFloatStateOf(initialX)
+    var y by mutableFloatStateOf(initialY)
+    var alpha by mutableFloatStateOf(1f)
+}
+
+@Composable
+fun ConfettiSystem() {
+    // 1. Get screen dimensions to spawn particles in the middle
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val density = LocalDensity.current
+        val widthPx = with(density) { maxWidth.toPx() }
+        val heightPx = with(density) { maxHeight.toPx() }
+
+        // 2. Create particles ONCE
+        val particles = remember {
+            val random = Random(System.currentTimeMillis())
+            val colors = listOf(
+                Color(0xFFFF5252), Color(0xFFFF4081), Color(0xFFE040FB),
+                Color(0xFF7C4DFF), Color(0xFF536DFE), Color(0xFF448AFF),
+                Color(0xFF40C4FF), Color(0xFF18FFFF), Color(0xFF64FFDA),
+                Color(0xFF69F0AE), Color(0xFFB2FF59), Color(0xFFFFD740),
+                Color(0xFFFFAB40), Color(0xFFFF6E40)
+            )
+
+            val list = mutableStateListOf<ConfettiParticle>()
+            repeat(150) { // 150 particles
+                list.add(
+                    ConfettiParticle(
+                        initialX = widthPx / 2f, // Center X
+                        initialY = heightPx / 2f, // Center Y
+                        // Explosion velocity: Random angle, random speed
+                        vx = (random.nextFloat() - 0.5f) * 2000f,
+                        vy = (random.nextFloat() - 0.5f) * 2000f - 500f, // Slight upward bias
+                        color = colors.random(),
+                        size = random.nextFloat() * 12f + 6f
+                    )
+                )
+            }
+            list
+        }
+
+        // 3. Animation Loop
+        var lastFrameTime by remember { mutableStateOf(0L) }
+
+        LaunchedEffect(Unit) {
+            while (true) {
+                withFrameMillis { frameTime ->
+                    if (lastFrameTime != 0L) {
+                        val dt = (frameTime - lastFrameTime) / 1000f
+                        // Update physics
+                        particles.forEach { p ->
+                            p.x += p.vx * dt
+                            p.y += p.vy * dt
+                            p.alpha -= 0.4f * dt // Fade out
+                        }
+                    }
+                    lastFrameTime = frameTime
+                }
             }
         }
-    }
 
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        val now = time.value
-        val width = size.width
-        val height = size.height
-
-        for (i in 0 until 20) {
-            var x = width / 2 + cos(i.toDouble() + now * 2) * 100
-            var y = height / 2 + sin(i.toDouble() + now * 3) * 100
-
-            val offset = i * 20.0
-            x += cos(now + offset) * 50
-            y += sin(now + offset) * 50
-
-            drawCircle(
-                color = Color.Yellow.copy(alpha = 0.8f),
-                radius = 4.dp.toPx(),
-                center = Offset(x.toFloat(), y.toFloat())
-            )
+        // 4. Draw
+        // Because Particle properties are backed by State, Canvas redraws automatically when they change
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            particles.forEach { p ->
+                if (p.alpha > 0f) {
+                    drawCircle(
+                        color = p.color.copy(alpha = p.alpha.coerceIn(0f, 1f)),
+                        radius = p.size,
+                        center = Offset(p.x, p.y)
+                    )
+                }
+            }
         }
     }
 }
