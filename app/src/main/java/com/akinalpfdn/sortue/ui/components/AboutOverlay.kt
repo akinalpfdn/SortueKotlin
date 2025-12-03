@@ -88,6 +88,7 @@ fun AboutOverlay(onDismiss: () -> Unit) {
                 Text(
                     text = stringResource(R.string.thanks_playing),
                     fontSize = 28.sp,
+                    textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -117,6 +118,7 @@ fun AboutOverlay(onDismiss: () -> Unit) {
                     text = stringResource(R.string.music_credit),
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
+                    fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.padding(top = 8.dp)
                 )

@@ -27,6 +27,16 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        AudioManager.getInstance(this).resumeBackgroundMusic()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        AudioManager.getInstance(this).pauseBackgroundMusic()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         AudioManager.getInstance(this).stopBackgroundMusic()

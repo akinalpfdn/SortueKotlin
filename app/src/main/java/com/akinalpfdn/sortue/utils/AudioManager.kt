@@ -17,6 +17,20 @@ class AudioManager(private val context: Context) {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        } else if (mediaPlayer?.isPlaying == false) {
+            mediaPlayer?.start()
+        }
+    }
+
+    fun pauseBackgroundMusic() {
+        if (mediaPlayer?.isPlaying == true) {
+            mediaPlayer?.pause()
+        }
+    }
+
+    fun resumeBackgroundMusic() {
+        if (mediaPlayer != null && mediaPlayer?.isPlaying == false) {
+            mediaPlayer?.start()
         }
     }
 
