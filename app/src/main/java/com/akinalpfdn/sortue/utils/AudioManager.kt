@@ -9,18 +9,11 @@ class AudioManager(private val context: Context) {
 
     fun playBackgroundMusic() {
         if (mediaPlayer == null) {
-            // Assuming soundTrack.mp3 will be placed in res/raw/soundtrack.mp3
-            // Note: Android resources must be lowercase.
-            // I will need to verify if the user has this file or I should ask for it.
-            // For now, I'll generate the code assuming the resource exists as R.raw.soundtrack
             try {
-                // mediaPlayer = MediaPlayer.create(context, R.raw.soundtrack)
-                // mediaPlayer?.isLooping = true
-                // mediaPlayer?.setVolume(0.7f, 0.7f)
-                // mediaPlayer?.start()
-                
-                // Placeholder until resource is migrated
-                println("AudioManager: Background music would play here (R.raw.soundtrack)")
+                mediaPlayer = MediaPlayer.create(context, R.raw.soundtrack)
+                mediaPlayer?.isLooping = true
+                mediaPlayer?.setVolume(0.7f, 0.7f)
+                mediaPlayer?.start()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
