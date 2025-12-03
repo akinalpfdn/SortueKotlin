@@ -27,7 +27,7 @@ fun SortueApp() {
     val rateManager = remember { RateManager.getInstance(context) }
     val showRatePopup by rateManager.showRatePopup.collectAsState()
     
-    var showLanding by remember { mutableStateOf(true) }
+    var showLanding by remember { mutableStateOf(!rateManager.hasSeenLanding) }
 
     LaunchedEffect(Unit) {
         AudioManager.getInstance(context).playBackgroundMusic()
@@ -41,7 +41,10 @@ fun SortueApp() {
             exit = fadeOut(),
             modifier = Modifier.zIndex(1f)
         ) {
-            LandingView(onPlay = { showLanding = false })
+            LandingView(onPlay = {
+                showLanding = false
+                rateManager.hasSeenLanding = true
+            })
         }
 
         AnimatedVisibility(

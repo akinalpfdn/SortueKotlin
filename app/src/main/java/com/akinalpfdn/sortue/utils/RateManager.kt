@@ -23,6 +23,10 @@ class RateManager(private val context: Context) {
         get() = prefs.getInt("next_review_threshold", 10)
         set(value) = prefs.edit().putInt("next_review_threshold", value).apply()
 
+    var hasSeenLanding: Boolean
+        get() = prefs.getBoolean("has_seen_landing", false)
+        set(value) = prefs.edit().putBoolean("has_seen_landing", value).apply()
+
     private val _showRatePopup = MutableStateFlow(false)
     val showRatePopup: StateFlow<Boolean> = _showRatePopup.asStateFlow()
 
