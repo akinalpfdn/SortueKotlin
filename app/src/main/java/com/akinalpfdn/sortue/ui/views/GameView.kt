@@ -90,15 +90,28 @@ fun GameView(vm: GameViewModel = viewModel()) {
     val currentLevel by vm.currentLevel.collectAsState()
 
     var showAbout by remember { mutableStateOf(false) }
+
+    // Controlled states for sequence
+    var showConfetti by remember { mutableStateOf(false) }
     var showWinOverlay by remember { mutableStateOf(false) }
 
-    // Logic: Delay the Win Overlay by 2 seconds to show Confetti
+    // CORRECTED SEQUENCE LOGIC
     LaunchedEffect(status) {
         if (status == GameStatus.WON) {
-            // Wait 2 seconds before showing the glass card
-            kotlinx.coroutines.delay(2000)
+            // Step 1: Celebration Starts Immediately
+            // Confetti explodes at the same time the tiles start their "Wave" animation.
+            showConfetti = true
+
+            // Step 2: Wait for user to enjoy the chaos (2.5 seconds)
+            // The wave takes ~0.5s - 1.0s depending on grid size.
+            // The confetti fades out over ~2.5s.
+            kotlinx.coroutines.delay(3500)
+
+            // Step 3: Show Menu only after the show is mostly done
             showWinOverlay = true
         } else {
+            // Reset everything if game restarts
+            showConfetti = false
             showWinOverlay = false
         }
     }
@@ -280,7 +293,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
         // Overlays
 
         // Show Confetti immediately when WON
-        if (status == GameStatus.WON) {
+        if (showConfetti) {
             ConfettiSystem()
         }
 
@@ -318,6 +331,7 @@ fun TileView(
 
     LaunchedEffect(isWon) {
         if (isWon) {
+            // Tiles start moving immediately (with their staggered delay)
             kotlinx.coroutines.delay(delay.toLong())
             scale.animateTo(1.1f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow))
             offsetY.animateTo(-10f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow))
@@ -526,11 +540,6 @@ fun StatusIcon(status: GameStatus) {
     }
 }
 
-// ----------------------------------------------------------------
-// Fixed Confetti System
-// ----------------------------------------------------------------
-
-// Use a class with MutableState properties so Compose triggers redraws automatically
 class ConfettiParticle(
     initialX: Float,
     initialY: Float,
@@ -539,7 +548,6 @@ class ConfettiParticle(
     val color: Color,
     val size: Float
 ) {
-    // These properties are observable by Compose
     var x by mutableFloatStateOf(initialX)
     var y by mutableFloatStateOf(initialY)
     var alpha by mutableFloatStateOf(1f)
@@ -547,13 +555,11 @@ class ConfettiParticle(
 
 @Composable
 fun ConfettiSystem() {
-    // 1. Get screen dimensions to spawn particles in the middle
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val widthPx = with(density) { maxWidth.toPx() }
         val heightPx = with(density) { maxHeight.toPx() }
 
-        // 2. Create particles ONCE
         val particles = remember {
             val random = Random(System.currentTimeMillis())
             val colors = listOf(
@@ -565,14 +571,13 @@ fun ConfettiSystem() {
             )
 
             val list = mutableStateListOf<ConfettiParticle>()
-            repeat(150) { // 150 particles
+            repeat(150) {
                 list.add(
                     ConfettiParticle(
-                        initialX = widthPx / 2f, // Center X
-                        initialY = heightPx / 2f, // Center Y
-                        // Explosion velocity: Random angle, random speed
+                        initialX = widthPx / 2f,
+                        initialY = heightPx / 2f,
                         vx = (random.nextFloat() - 0.5f) * 2000f,
-                        vy = (random.nextFloat() - 0.5f) * 2000f - 500f, // Slight upward bias
+                        vy = (random.nextFloat() - 0.5f) * 2000f - 500f,
                         color = colors.random(),
                         size = random.nextFloat() * 12f + 6f
                     )
@@ -581,7 +586,6 @@ fun ConfettiSystem() {
             list
         }
 
-        // 3. Animation Loop
         var lastFrameTime by remember { mutableStateOf(0L) }
 
         LaunchedEffect(Unit) {
@@ -589,11 +593,10 @@ fun ConfettiSystem() {
                 withFrameMillis { frameTime ->
                     if (lastFrameTime != 0L) {
                         val dt = (frameTime - lastFrameTime) / 1000f
-                        // Update physics
                         particles.forEach { p ->
                             p.x += p.vx * dt
                             p.y += p.vy * dt
-                            p.alpha -= 0.4f * dt // Fade out
+                            p.alpha -= 0.4f * dt
                         }
                     }
                     lastFrameTime = frameTime
@@ -601,8 +604,6 @@ fun ConfettiSystem() {
             }
         }
 
-        // 4. Draw
-        // Because Particle properties are backed by State, Canvas redraws automatically when they change
         Canvas(modifier = Modifier.fillMaxSize()) {
             particles.forEach { p ->
                 if (p.alpha > 0f) {
