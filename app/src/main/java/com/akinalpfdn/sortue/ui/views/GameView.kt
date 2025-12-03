@@ -126,7 +126,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 20.dp)
+                .padding(vertical = 50.dp)
                 // Only blur when the overlay is actually visible
                 .blur(if (showWinOverlay || showAbout) 5.dp else 0.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -301,7 +301,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
             PremiumWinOverlay(
                 onReplay = { vm.startNewGame(preserveColors = true) },
                 onNext = {
-                    val nextDim = minOf(gridDimension + 1, 12)
+                    val nextDim = gridDimension
                     vm.startNewGame(dimension = nextDim)
                 }
             )
