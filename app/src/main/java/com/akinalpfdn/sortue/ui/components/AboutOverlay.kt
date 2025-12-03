@@ -78,18 +78,19 @@ fun AboutOverlay(onDismiss: () -> Unit) {
                 )
             }
 
-            Text(
-                text = stringResource(R.string.thanks_playing),
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.padding(horizontal = 8.dp)
             ) {
+                Text(
+                    text = stringResource(R.string.thanks_playing),
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 Text(
                     text = stringResource(R.string.hope_enjoy),
                     style = MaterialTheme.typography.bodyLarge,

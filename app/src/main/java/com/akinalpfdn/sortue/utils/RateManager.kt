@@ -40,13 +40,13 @@ class RateManager(private val context: Context) {
     }
 
     fun remindMeLater() {
-        nextReviewThreshold = launchCount + 5
+        nextReviewThreshold = launchCount + 30
         _showRatePopup.value = false
     }
 
     fun rateNow() {
         // Push the next prompt far into the future so we don't ask again soon
-        nextReviewThreshold = launchCount + 100
+        nextReviewThreshold = launchCount + 30
         _showRatePopup.value = false
 
         // Trigger the system review prompt (Intent to Play Store)

@@ -8,7 +8,7 @@
 
     <!-- Rate Overlay -->
     <string name="enjoying_sortue">Sortue\'yu sevdin mi?</string>
-    <string name="rate_message">Sortue\'yu kullanmaktan keyif alıyorsan, bir dakikanı ayırıp oy vererek bana destek olur musun? Desteğin için teşekkürler!</string>
+    <string name="rate_message">Sortue\'yu kullanmaktan keyif alıyorsan, bir dakikanı ayırıp puanlayarak bana destek olur musun? Desteğin için teşekkürler!</string>
     <string name="rate_now">Şimdi Oyla</string>
     <string name="remind_later">Daha Sonra Hatırlat</string>
 
@@ -16,7 +16,7 @@
     <string name="thanks_playing">Oynadığın için teşekkürler!</string>
     <string name="hope_enjoy">Umarım oyundan keyif alıyorsundur.</string>
     <string name="simple_experience">Sana reklamsız ve ücretsiz, en sade deneyimi sunmak istiyorum.</string>
-    <string name="support_me">Lütfen oy vererek ve paylaşarak beni destekle.</string>
+    <string name="support_me">Lütfen puanlayarak ve paylaşarak beni destekle.</string>
     <string name="music_credit">Oyun melodisi için Ka - Fa 1500\'e sonsuz teşekkürler.</string>
     <string name="close">Kapat</string>
 
@@ -92,6 +92,6 @@
     <!-- Landing Page -->
     <string name="landing_subtitle">Uyumu Geri Getir</string>
     <string name="how_to_play_title">Nasıl Oynanır</string>
-    <string name="how_to_play_desc">Kareleri sürükleyip bırakarak mükemmel bir renk geçişi oluştur. Köşeler sabit rehberlerdir.</string>
+    <string name="how_to_play_desc">Kareleri sürükleyip bırakarak köşeler arasında mükemmel bir renk geçişi oluştur.  Köşeler sabit başlangıç ve bitiş noktalarıdır.</string>
     <string name="start_game">Oyuna Başla</string>
 </resources>

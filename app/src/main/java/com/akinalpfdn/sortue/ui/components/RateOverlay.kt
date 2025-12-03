@@ -2,6 +2,7 @@ package com.akinalpfdn.sortue.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,8 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,6 +31,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -46,22 +46,28 @@ fun RateOverlay(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.4f)),
+            .background(Color.Black.copy(alpha = 0.2f)) // Softer dim
+            .clickable(enabled = false) {}, // Block clicks behind
         contentAlignment = Alignment.Center
     ) {
         // Premium Glass Card
         Column(
             modifier = Modifier
                 .padding(32.dp)
-                .shadow(30.dp, RoundedCornerShape(32.dp))
+                // Premium shadow with spot color
+                .shadow(
+                    elevation = 30.dp,
+                    shape = RoundedCornerShape(32.dp),
+                    spotColor = Color.Black.copy(alpha = 0.25f)
+                )
                 .clip(RoundedCornerShape(32.dp))
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
+                .background(Color.White.copy(alpha = 0.95f)) // Glass effect
                 .border(1.dp, Color.White.copy(alpha = 0.4f), RoundedCornerShape(32.dp))
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(30.dp)
         ) {
-            // Icon
+            // Icon Glow Container
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier.padding(top = 10.dp)
@@ -69,14 +75,14 @@ fun RateOverlay(
                 Box(
                     modifier = Modifier
                         .size(80.dp)
-                        .clip(CircleShape)
                         .background(
-                            Brush.linearGradient(
+                            brush = Brush.linearGradient(
                                 colors = listOf(
                                     Color.Yellow.copy(alpha = 0.2f),
-                                    Color(0xFFFFA500).copy(alpha = 0.2f) // Orange
+                                    Color(0xFFFFA500).copy(alpha = 0.2f)
                                 )
-                            )
+                            ),
+                            shape = CircleShape
                         )
                 )
 
@@ -95,16 +101,17 @@ fun RateOverlay(
             ) {
                 Text(
                     text = stringResource(R.string.enjoying_sortue),
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontFamily = FontFamily.Serif, // Premium font
+                        fontWeight = FontWeight.SemiBold
+                    ),
+                    color = Color.Black
                 )
 
                 Text(
                     text = stringResource(R.string.rate_message),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.Black.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 10.dp)
                 )
@@ -115,46 +122,42 @@ fun RateOverlay(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.padding(horizontal = 10.dp)
             ) {
-                // Primary Action (Rate Now)
-                Button(
-                    onClick = onRate,
+                // Primary Action (Rate Now) - Custom Gradient Box
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
-                        .shadow(8.dp, CircleShape),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent
-                    ),
-                    contentPadding = ButtonDefaults.ContentPadding // Reset padding
+                        // Pink Glow Shadow
+                        .shadow(
+                            elevation = 10.dp,
+                            shape = CircleShape,
+                            spotColor = Color(0xFFFF4081).copy(alpha = 0.4f)
+                        )
+                        .clip(CircleShape)
+                        .background(
+                            Brush.horizontalGradient(
+                                colors = listOf(Color(0xFFFF4081), Color(0xFF9C27B0)) // Pink to Purple
+                            )
+                        )
+                        .clickable(onClick = onRate),
+                    contentAlignment = Alignment.Center
                 ) {
-                    // Gradient Background workaround for Button
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.horizontalGradient(
-                                    colors = listOf(Color(0xFFFF4081), Color(0xFF9C27B0)) // Pink to Purple
-                                )
-                            ),
-                        contentAlignment = Alignment.Center
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.rate_now),
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.White
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(
-                                imageVector = Icons.Filled.Favorite,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
+                        Text(
+                            text = stringResource(R.string.rate_now),
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.Filled.Favorite,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                 }
 
@@ -168,7 +171,7 @@ fun RateOverlay(
                     Text(
                         text = stringResource(R.string.remind_later),
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        color = Color.Black.copy(alpha = 0.5f)
                     )
                 }
             }

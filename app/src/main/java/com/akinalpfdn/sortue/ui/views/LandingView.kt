@@ -1,6 +1,8 @@
 package com.akinalpfdn.sortue.ui.views
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,8 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,7 +29,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -46,7 +46,7 @@ fun LandingView(onPlay: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 40.dp),
+                .padding(vertical = 140.dp),
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -74,21 +74,27 @@ fun LandingView(onPlay: () -> Unit) {
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Tutorial / Info Card
+            // Tutorial / Info Card (Glassmorphism Style)
             Column(
                 modifier = Modifier
                     .padding(horizontal = 20.dp)
-                    .shadow(10.dp, RoundedCornerShape(24.dp))
+                    // Soft shadow
+                    .shadow(
+                        elevation = 20.dp,
+                        shape = RoundedCornerShape(24.dp),
+                        spotColor = Color.Black.copy(alpha = 0.1f)
+                    )
                     .clip(RoundedCornerShape(24.dp))
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f))
+                    // Frosted glass effect: High alpha white instead of gray
+                    .background(Color.White.copy(alpha = 0.85f))
+                    // Subtle white border for "glass edge"
+                    .border(1.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
                     .padding(30.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // Using a generic icon since hand.draw.fill is specific
-                // You might want to import a specific drawable for this
                 Icon(
-                    imageVector = Icons.Filled.PlayArrow, // Placeholder for hand icon
+                    imageVector = Icons.Filled.TouchApp, // Requires extended icons, cleaner than PlayArrow
                     contentDescription = null,
                     modifier = Modifier.size(40.dp),
                     tint = Color(0xFF3F51B5) // Indigo
@@ -104,56 +110,53 @@ fun LandingView(onPlay: () -> Unit) {
                     text = stringResource(R.string.how_to_play_desc),
                     style = MaterialTheme.typography.bodyLarge,
                     textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = Color.Black.copy(alpha = 0.6f),
+                    lineHeight = 24.sp
                 )
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Play Button
-            Button(
-                onClick = onPlay,
+            // Play Button (Custom Gradient Implementation)
+            Box(
                 modifier = Modifier
+                    .padding(horizontal = 40.dp, vertical = 40.dp)
                     .fillMaxWidth()
                     .height(60.dp)
-                    .padding(horizontal = 40.dp)
-                    .shadow(10.dp, CircleShape),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent
-                ),
-                contentPadding = ButtonDefaults.ContentPadding
+                    // Colored shadow matching the gradient (Indigo glow)
+                    .shadow(
+                        elevation = 15.dp,
+                        shape = CircleShape,
+                        spotColor = Color(0xFF3F51B5).copy(alpha = 0.5f)
+                    )
+                    .clip(CircleShape)
+                    .background(
+                        Brush.horizontalGradient(
+                            colors = listOf(Color(0xFF3F51B5), Color(0xFF9C27B0)) // Indigo -> Purple
+                        )
+                    )
+                    .clickable(onClick = onPlay),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.horizontalGradient(
-                                colors = listOf(Color(0xFF3F51B5), Color(0xFF9C27B0)) // Indigo to Purple
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(horizontal = 24.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = stringResource(R.string.start_game),
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Icon(
-                            imageVector = Icons.Filled.PlayArrow,
-                            contentDescription = null,
-                            tint = Color.White
-                        )
-                    }
+                    Text(
+                        text = stringResource(R.string.start_game),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        imageVector = Icons.Filled.PlayArrow,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
                 }
             }
-            
-            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }
