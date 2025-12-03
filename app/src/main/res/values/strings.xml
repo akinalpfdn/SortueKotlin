@@ -1,3 +1,97 @@
 <resources>
     <string name="app_name">Sortue</string>
+
+    <!-- Game View -->
+    <string name="level_display">Level %1$d • %2$dx%3$d • %4$d Moves</string>
+    <string name="grid_size">Grid Size</string>
+    <string name="next_level">Next Level</string>
+
+    <!-- Rate Overlay -->
+    <string name="enjoying_sortue">Enjoying Sortue?</string>
+    <string name="rate_message">If you enjoy using Sortue, would you mind taking a moment to rate it and help me? Thanks for your support!</string>
+    <string name="rate_now">Rate Now</string>
+    <string name="remind_later">Remind Me Later</string>
+
+    <!-- About Overlay -->
+    <string name="thanks_playing">Thanks for playing!</string>
+    <string name="hope_enjoy">Hope you are enjoying the game.</string>
+    <string name="simple_experience">I want to give you the simplest possible experience without any ads or monetization.</string>
+    <string name="support_me">Please support me by rating and sharing the game.</string>
+    <string name="music_credit">Huge thanks to Ka - Fa 1500 for the game melody.</string>
+    <string name="close">Close</string>
+
+    <!-- Win Titles -->
+    <string name="win_title_divine">Divine</string>
+    <string name="win_title_exquisite">Exquisite</string>
+    <string name="win_title_radiant">Radiant</string>
+    <string name="win_title_sublime">Sublime</string>
+    <string name="win_title_flawless">Flawless</string>
+    <string name="win_title_brilliant">Brilliant</string>
+    <string name="win_title_zen">Zen</string>
+    <string name="win_title_perfect">Perfect</string>
+    <string name="win_title_harmony">Harmony</string>
+    <string name="win_title_masterpiece">Masterpiece</string>
+    <string name="win_title_serene">Serene</string>
+    <string name="win_title_complete">Complete</string>
+    <string name="win_title_elegant">Elegant</string>
+    <string name="win_title_sorted">Sorted</string>
+    <string name="win_title_pure">Pure</string>
+    <string name="win_title_beautiful">Beautiful</string>
+    <string name="win_title_tranquil">Tranquil</string>
+    <string name="win_title_lovely">Lovely</string>
+    <string name="win_title_splendid">Splendid</string>
+    <string name="win_title_graceful">Graceful</string>
+    <string name="win_title_harmonious">Harmonious</string>
+    <string name="win_title_excellent">Excellent</string>
+    <string name="win_title_wonderful">Wonderful</string>
+    <string name="win_title_calming">Calming</string>
+    <string name="win_title_peaceful">Peaceful</string>
+    <string name="win_title_flowing">Flowing</string>
+    <string name="win_title_gentle">Gentle</string>
+    <string name="win_title_smooth">Smooth</string>
+    <string name="win_title_balanced">Balanced</string>
+    <string name="win_title_aligned">Aligned</string>
+
+    <!-- Win Subtitles -->
+    <string name="win_subtitle_spectrum">The spectrum is complete.</string>
+    <string name="win_subtitle_balance">Balance has been restored.</string>
+    <string name="win_subtitle_vision">A vision of order.</string>
+    <string name="win_subtitle_colors">Colors aligned perfectly.</string>
+    <string name="win_subtitle_chaos">Chaos into order.</string>
+    <string name="win_subtitle_satisfying">Simply satisfying.</string>
+    <string name="win_subtitle_peaceful">Peaceful perfection.</string>
+    <string name="win_subtitle_clarity">A moment of clarity.</string>
+    <string name="win_subtitle_smooth">Smooth transitions.</string>
+    <string name="win_subtitle_eye">You have an eye for this.</string>
+    <string name="win_subtitle_gradient">Gradient mastery.</string>
+    <string name="win_subtitle_flow">Flow state achieved.</string>
+    <string name="win_subtitle_tranquility">Absolute tranquility.</string>
+    <string name="win_subtitle_organized">Beautifully organized.</string>
+    <string name="win_subtitle_rhythm">Rhythm and hue.</string>
+    <string name="win_subtitle_harmony_restored">Harmony restored.</string>
+    <string name="win_subtitle_peace">A moment of peace.</string>
+    <string name="win_subtitle_sync">Colors in sync.</string>
+    <string name="win_subtitle_order">Order found.</string>
+    <string name="win_subtitle_pure_satisfaction">Pure satisfaction.</string>
+    <string name="win_subtitle_simply_delightful">Simply delightful.</string>
+    <string name="win_subtitle_gentle_success">A gentle success.</string>
+    <string name="win_subtitle_balance_achieved">Balance achieved.</string>
+    <string name="win_subtitle_smooth_perfection">Smooth perfection.</string>
+    <string name="win_subtitle_calm_clear">Calm and clear.</string>
+    <string name="win_subtitle_spectrum_flows">The spectrum flows.</string>
+    <string name="win_subtitle_relax_breathe">Relax and breathe.</string>
+    <string name="win_subtitle_well_sorted">Well sorted.</string>
+    <string name="win_subtitle_perfect_gradient">A perfect gradient.</string>
+    <string name="win_subtitle_zen_achieved">Zen achieved.</string>
+    <string name="win_subtitle_flow_state_found">Flow state found.</string>
+    <string name="win_subtitle_nice_tidy">Nice and tidy.</string>
+    <string name="win_subtitle_softly_aligned">Softly aligned.</string>
+    <string name="win_subtitle_vibrant_peace">Vibrant peace.</string>
+    <string name="win_subtitle_quietly_perfect">Quietly perfect.</string>
+
+    <!-- Landing Page -->
+    <string name="landing_subtitle">Restore the Harmony</string>
+    <string name="how_to_play_title">How to Play</string>
+    <string name="how_to_play_desc">Drag and drop tiles to arrange them into a perfect color gradient. The corners are fixed guides.</string>
+    <string name="start_game">Start Game</string>
 </resources>

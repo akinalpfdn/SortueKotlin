@@ -1,0 +1,97 @@
+<resources>
+    <string name="app_name">Sortue</string>
+
+    <!-- Game View -->
+    <string name="level_display">Seviye %1$d • %2$dx%3$d • %4$d Hamle</string>
+    <string name="grid_size">Izgara Boyutu</string>
+    <string name="next_level">Sonraki Seviye</string>
+
+    <!-- Rate Overlay -->
+    <string name="enjoying_sortue">Sortue\'yu sevdin mi?</string>
+    <string name="rate_message">Sortue\'yu kullanmaktan keyif alıyorsan, bir dakikanı ayırıp oy vererek bana destek olur musun? Desteğin için teşekkürler!</string>
+    <string name="rate_now">Şimdi Oyla</string>
+    <string name="remind_later">Daha Sonra Hatırlat</string>
+
+    <!-- About Overlay -->
+    <string name="thanks_playing">Oynadığın için teşekkürler!</string>
+    <string name="hope_enjoy">Umarım oyundan keyif alıyorsundur.</string>
+    <string name="simple_experience">Sana reklamsız ve ücretsiz, en sade deneyimi sunmak istiyorum.</string>
+    <string name="support_me">Lütfen oy vererek ve paylaşarak beni destekle.</string>
+    <string name="music_credit">Oyun melodisi için Ka - Fa 1500\'e sonsuz teşekkürler.</string>
+    <string name="close">Kapat</string>
+
+    <!-- Win Titles -->
+    <string name="win_title_divine">İlahi</string>
+    <string name="win_title_exquisite">Enfes</string>
+    <string name="win_title_radiant">Parlak</string>
+    <string name="win_title_sublime">Yüce</string>
+    <string name="win_title_flawless">Kusursuz</string>
+    <string name="win_title_brilliant">Muazzam</string>
+    <string name="win_title_zen">Zen</string>
+    <string name="win_title_perfect">Mükemmel</string>
+    <string name="win_title_harmony">Uyum</string>
+    <string name="win_title_masterpiece">Şaheser</string>
+    <string name="win_title_serene">Huzurlu</string>
+    <string name="win_title_complete">Tamamlandı</string>
+    <string name="win_title_elegant">Zarif</string>
+    <string name="win_title_sorted">Düzenli</string>
+    <string name="win_title_pure">Saf</string>
+    <string name="win_title_beautiful">Güzel</string>
+    <string name="win_title_tranquil">Sakin</string>
+    <string name="win_title_lovely">Harika</string>
+    <string name="win_title_splendid">Dengeli</string>
+    <string name="win_title_graceful">Akıcı</string>
+    <string name="win_title_harmonious">Uyumlu</string>
+    <string name="win_title_excellent">Mükemmel</string>
+    <string name="win_title_wonderful">Harika</string>
+    <string name="win_title_calming">Sakinleştirici</string>
+    <string name="win_title_peaceful">Huzur Dolu</string>
+    <string name="win_title_flowing">Akıcı</string>
+    <string name="win_title_gentle">Nazik</string>
+    <string name="win_title_smooth">Pürüzsüz</string>
+    <string name="win_title_balanced">Dengeli</string>
+    <string name="win_title_aligned">Hizalı</string>
+
+    <!-- Win Subtitles -->
+    <string name="win_subtitle_spectrum">Spektrum tamamlandı.</string>
+    <string name="win_subtitle_balance">Denge sağlandı.</string>
+    <string name="win_subtitle_vision">Bir düzen vizyonu.</string>
+    <string name="win_subtitle_colors">Renkler mükemmel hizalandı.</string>
+    <string name="win_subtitle_chaos">Kaostan düzene.</string>
+    <string name="win_subtitle_satisfying">Sadece tatmin edici.</string>
+    <string name="win_subtitle_peaceful">Huzurlu mükemmellik.</string>
+    <string name="win_subtitle_clarity">Bir netlik anı.</string>
+    <string name="win_subtitle_smooth">Pürüzsüz geçişler.</string>
+    <string name="win_subtitle_eye">Bunun için bir gözün var.</string>
+    <string name="win_subtitle_gradient">Gradyan ustalığı.</string>
+    <string name="win_subtitle_flow">Akış durumuna ulaşıldı.</string>
+    <string name="win_subtitle_tranquility">Mutlak huzur.</string>
+    <string name="win_subtitle_organized">Güzelce organize edildi.</string>
+    <string name="win_subtitle_rhythm">Ritim ve renk tonu.</string>
+    <string name="win_subtitle_harmony_restored">Uyum geri yüklendi.</string>
+    <string name="win_subtitle_peace">Bir barış anı.</string>
+    <string name="win_subtitle_sync">Renkler senkronize.</string>
+    <string name="win_subtitle_order">Düzen bulundu.</string>
+    <string name="win_subtitle_pure_satisfaction">Saf tatmin.</string>
+    <string name="win_subtitle_simply_delightful">Sadece zevkli.</string>
+    <string name="win_subtitle_gentle_success">Nazik bir başarı.</string>
+    <string name="win_subtitle_balance_achieved">Denge sağlandı.</string>
+    <string name="win_subtitle_smooth_perfection">Pürüzsüz mükemmellik.</string>
+    <string name="win_subtitle_calm_clear">Sakin ve berrak.</string>
+    <string name="win_subtitle_spectrum_flows">Spektrum akıyor.</string>
+    <string name="win_subtitle_relax_breathe">Rahatla ve nefes al.</string>
+    <string name="win_subtitle_well_sorted">İyi sıralanmış.</string>
+    <string name="win_subtitle_perfect_gradient">Mükemmel bir gradyan.</string>
+    <string name="win_subtitle_zen_achieved">Zen\'e ulaşıldı.</string>
+    <string name="win_subtitle_flow_state_found">Akış hali bulundu.</string>
+    <string name="win_subtitle_nice_tidy">Hoş ve düzenli.</string>
+    <string name="win_subtitle_softly_aligned">Yumuşakça hizalanmış.</string>
+    <string name="win_subtitle_vibrant_peace">Canlı huzur.</string>
+    <string name="win_subtitle_quietly_perfect">Sessizce mükemmel.</string>
+
+    <!-- Landing Page -->
+    <string name="landing_subtitle">Uyumu Geri Getir</string>
+    <string name="how_to_play_title">Nasıl Oynanır</string>
+    <string name="how_to_play_desc">Kareleri sürükleyip bırakarak mükemmel bir renk geçişi oluştur. Köşeler sabit rehberlerdir.</string>
+    <string name="start_game">Oyuna Başla</string>
+</resources>
