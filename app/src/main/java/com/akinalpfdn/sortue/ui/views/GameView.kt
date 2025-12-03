@@ -31,8 +31,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
@@ -139,12 +140,12 @@ fun GameView(vm: GameViewModel = viewModel()) {
 
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     CircleButton(
-                        icon = Icons.Filled.Info,
+                        icon = Icons.Filled.Lightbulb,
                         onClick = { vm.useHint() },
                         enabled = status == GameStatus.PLAYING
                     )
                     CircleButton(
-                        icon = Icons.Filled.Refresh,
+                        icon = Icons.Filled.Shuffle,
                         onClick = { vm.startNewGame() },
                         enabled = status != GameStatus.PREVIEW
                     )
