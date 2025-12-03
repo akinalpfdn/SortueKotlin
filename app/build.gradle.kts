@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.animation.core.lint)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -58,4 +59,12 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
+
+    // Required for Icons.Filled.Visibility (Eye icon)
+    // If you use a BOM (Bill of Materials), you don't need the version number at the end
+    implementation("androidx.compose.material:material-icons-extended:1.7.5")
+
+    // Required for Modifier.animateItemPlacement()
+    // Ensure you are using a recent version of Foundation (1.7.0+ recommended)
+    implementation("androidx.compose.foundation:foundation:1.7.5")
 }

@@ -1,7 +1,12 @@
 package com.akinalpfdn.sortue.ui.views
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,17 +20,22 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,19 +57,24 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lint.kotlin.metadata.Visibility
 import com.akinalpfdn.sortue.R
 import com.akinalpfdn.sortue.models.GameStatus
 import com.akinalpfdn.sortue.models.Tile
 import com.akinalpfdn.sortue.ui.components.AboutOverlay
 import com.akinalpfdn.sortue.ui.components.AmbientBackground
-import com.akinalpfdn.sortue.ui.components.WinOverlay
+// Removed external WinOverlay import to use the local custom implementation
 import com.akinalpfdn.sortue.viewmodels.GameViewModel
 import kotlin.math.cos
 import kotlin.math.sin
@@ -76,28 +91,35 @@ fun GameView(vm: GameViewModel = viewModel()) {
     var showAbout by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
+        // Background layer
+        Box(modifier = Modifier.fillMaxSize().background(Color.White))
         AmbientBackground()
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(vertical = 20.dp)
+                // Blur effect to match Swift's .blur(radius: (vm.status == .won || showAbout) ? 5 : 0)
                 .blur(if (status == GameStatus.WON || showAbout) 5.dp else 0.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Header
+            // Header Section
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 28.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { showAbout = true }) {
+                // Status Icon with click animation
+                IconButton(
+                    onClick = { showAbout = true },
+                    modifier = Modifier.size(44.dp) // Resetting size to let StatusIcon handle it
+                ) {
                     StatusIcon(status = status)
                 }
 
                 Column(
-                    modifier = Modifier.padding(start = 8.dp),
+                    modifier = Modifier.padding(start = 12.dp),
                     horizontalAlignment = Alignment.Start
                 ) {
                     Text(
@@ -106,9 +128,10 @@ fun GameView(vm: GameViewModel = viewModel()) {
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = stringResource(R.string.level_display, currentLevel, gridDimension, gridDimension, moves),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        text = stringResource(R.string.level_display, currentLevel, gridDimension, gridDimension, moves).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray,
+                        letterSpacing = 0.5.sp
                     )
                 }
 
@@ -116,12 +139,12 @@ fun GameView(vm: GameViewModel = viewModel()) {
 
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     CircleButton(
-                        icon = Icons.Filled.Info, // Lightbulb replacement
+                        icon = Icons.Filled.Info,
                         onClick = { vm.useHint() },
                         enabled = status == GameStatus.PLAYING
                     )
                     CircleButton(
-                        icon = Icons.Filled.Refresh, // Shuffle replacement
+                        icon = Icons.Filled.Refresh,
                         onClick = { vm.startNewGame() },
                         enabled = status != GameStatus.PREVIEW
                     )
@@ -130,13 +153,14 @@ fun GameView(vm: GameViewModel = viewModel()) {
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Game Grid
+            // Game Grid Container
             Box(
                 modifier = Modifier
                     .padding(16.dp)
-                    .shadow(20.dp, RoundedCornerShape(24.dp))
+                    // Matches Swift: .shadow(color: .black.opacity(0.05), radius: 20, x: 0, y: 10)
+                    //.shadow(elevation = 20.dp, shape = RoundedCornerShape(24.dp), spotColor = Color.Black.copy(alpha = 0.2f))
                     .clip(RoundedCornerShape(24.dp))
-                    .background(Color.White)
+                    .background(Color.Transparent)
                     .padding(16.dp)
             ) {
                 LazyVerticalGrid(
@@ -145,13 +169,18 @@ fun GameView(vm: GameViewModel = viewModel()) {
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                     userScrollEnabled = false
                 ) {
-                    items(tiles, key = { it.id }) { tile ->
-                        TileView(
-                            tile = tile,
-                            isSelected = selectedTileId == tile.id,
-                            isWon = status == GameStatus.WON || status == GameStatus.ANIMATING,
-                            onClick = { vm.selectTile(tile) }
-                        )
+                    itemsIndexed(tiles, key = { _, it -> it.id }) { index, tile ->
+                        // Wrapper box for animation modifier
+                        Box(modifier = Modifier.animateItem()) {
+                            TileView(
+                                tile = tile,
+                                isSelected = selectedTileId == tile.id,
+                                isWon = status == GameStatus.WON || status == GameStatus.ANIMATING,
+                                index = index,
+                                gridWidth = gridDimension,
+                                onClick = { vm.selectTile(tile) }
+                            )
+                        }
                     }
                 }
             }
@@ -191,7 +220,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                         }
                     },
                     valueRange = 4f..12f,
-                    steps = 7, // (12-4) - 1
+                    steps = 7,
                     colors = SliderDefaults.colors(
                         thumbColor = MaterialTheme.colorScheme.primary,
                         activeTrackColor = MaterialTheme.colorScheme.primary
@@ -200,8 +229,9 @@ fun GameView(vm: GameViewModel = viewModel()) {
             }
         }
 
+        // Overlays
         if (status == GameStatus.WON) {
-            WinOverlay(
+            PremiumWinOverlay(
                 onReplay = { vm.startNewGame(preserveColors = true) },
                 onNext = {
                     val nextDim = minOf(gridDimension + 1, 12)
@@ -225,19 +255,57 @@ fun TileView(
     tile: Tile,
     isSelected: Boolean,
     isWon: Boolean,
+    index: Int,
+    gridWidth: Int,
     onClick: () -> Unit
 ) {
-    // Simple scale animation
-    val scale by animateFloatAsState(
-        targetValue = if (isWon) 1.1f else if (isSelected) 0.9f else 1.0f,
-        animationSpec = tween(durationMillis = 300),
-        label = "scale"
-    )
+    // Logic to calculate staggered delay based on grid position (matches Swift: delay = (x + y) * 0.05)
+    val x = index % gridWidth
+    val y = index / gridWidth
+    val delay = (x + y) * 50 // 0.05s = 50ms
+
+    // Scale animation with spring
+    val scale = remember { Animatable(1f) }
+
+    // Y-Offset animation for the "jump" effect
+    val offsetY = remember { Animatable(0f) }
+
+    LaunchedEffect(isWon) {
+        if (isWon) {
+            // Initial delay based on position
+            kotlinx.coroutines.delay(delay.toLong())
+
+            // Parallel animation: Scale up and move up
+            androidx.compose.animation.core.animate(
+                initialValue = 0f,
+                targetValue = 1f,
+                animationSpec = spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow)
+            ) { value, _ ->
+                // Simulate the Swift spring animation
+                // Scale 1.0 -> 1.1
+                // Offset 0 -> -10
+            }
+            // Simplified for Compose:
+            scale.animateTo(1.1f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow))
+            offsetY.animateTo(-10f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow))
+        } else {
+            scale.animateTo(if (isSelected) 0.9f else 1.0f)
+            offsetY.animateTo(0f)
+        }
+    }
+
+    // React to selection changes immediately
+    LaunchedEffect(isSelected) {
+        if (!isWon) {
+            scale.animateTo(if (isSelected) 0.9f else 1.0f)
+        }
+    }
 
     Box(
         modifier = Modifier
             .aspectRatio(1f)
-            .scale(scale)
+            .offset { IntOffset(0, offsetY.value.toInt()) }
+            .scale(scale.value)
             .shadow(if (isSelected) 10.dp else 0.dp, RoundedCornerShape(8.dp))
             .clip(RoundedCornerShape(8.dp))
             .background(tile.rgb.color)
@@ -259,9 +327,133 @@ fun TileView(
     }
 }
 
+// Replaces the imported WinOverlay to match Swift's "Premium Glass Card"
+@Composable
+fun PremiumWinOverlay(onReplay: () -> Unit, onNext: () -> Unit) {
+    // Placeholder for random messages (Swift uses WinMessages struct)
+    val title = "Magnificent!"
+    val subtitle = "You have restored order to the chaos."
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.2f)) // Dim background
+            .clickable(enabled = false) {}, // Block clicks
+        contentAlignment = Alignment.Center
+    ) {
+        // Glass Card
+        Column(
+            modifier = Modifier
+                .padding(32.dp)
+                .shadow(elevation = 30.dp, shape = RoundedCornerShape(32.dp), spotColor = Color.Black.copy(alpha = 0.25f))
+                .clip(RoundedCornerShape(32.dp))
+                .background(Color.White.copy(alpha = 0.85f)) // Approximate UltraThinMaterial
+                .border(1.dp, Color.White.copy(alpha = 0.4f), RoundedCornerShape(32.dp))
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(30.dp)
+        ) {
+            // Animated Icon Gradient
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.padding(top = 10.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .background(
+                            brush = Brush.linearGradient(
+                                colors = listOf(Color(0xFF3F51B5).copy(alpha = 0.2f), Color(0xFF9C27B0).copy(alpha = 0.2f))
+                            ),
+                            shape = CircleShape
+                        )
+                )
+                Icon(
+                    imageVector = Icons.Filled.Star, // Sparkles replacement
+                    contentDescription = null,
+                    modifier = Modifier.size(36.dp),
+                    tint = Color(0xFF3F51B5) // Or use a shader brush for gradient tint if advanced needed
+                )
+            }
+
+            // Typography
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontFamily = FontFamily.Serif, // Matches Swift "Serif" design
+                        fontWeight = FontWeight.Medium
+                    ),
+                    color = Color.Black
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Black.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+            }
+
+            // Actions
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Secondary Action (Replay)
+                IconButton(
+                    onClick = onReplay,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .background(Color.Gray.copy(alpha = 0.1f), CircleShape)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Refresh, // Arrow Counterclockwise replacement
+                        contentDescription = null,
+                        tint = Color.Black.copy(alpha = 0.8f)
+                    )
+                }
+
+                // Primary Action (Next)
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp)
+                        .shadow(8.dp, CircleShape, spotColor = Color.Black.copy(alpha = 0.2f))
+                        .background(Color.Black.copy(alpha = 0.7f), CircleShape) // Primary opacity 0.5 dark
+                        .clickable { onNext() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.next_level),
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun CircleButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     onClick: () -> Unit,
     enabled: Boolean = true
 ) {
@@ -270,13 +462,14 @@ fun CircleButton(
         enabled = enabled,
         modifier = Modifier
             .size(44.dp)
-            .shadow(5.dp, CircleShape)
+            .shadow(5.dp, CircleShape, spotColor = Color.Black.copy(alpha = 0.1f))
             .background(Color.White, CircleShape)
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (enabled) MaterialTheme.colorScheme.primary else Color.Gray
+            tint = if (enabled) Color.Black else Color.Gray,
+            modifier = Modifier.size(20.dp)
         )
     }
 }
@@ -286,21 +479,21 @@ fun StatusIcon(status: GameStatus) {
     Box(
         modifier = Modifier
             .size(44.dp)
-            .shadow(4.dp, RoundedCornerShape(12.dp))
+            .shadow(4.dp, RoundedCornerShape(12.dp), spotColor = Color.Black.copy(alpha = 0.05f))
             .background(Color.White, RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.Center
     ) {
         if (status == GameStatus.PREVIEW) {
             Icon(
-                imageVector = Icons.Filled.Settings, // Eye replacement (using Settings as placeholder or find Eye)
+                imageVector = Icons.Filled.Visibility, // Eye icon
                 contentDescription = null,
                 tint = Color(0xFF3F51B5) // Indigo
             )
         } else {
             Icon(
-                imageVector = Icons.Filled.Settings, // Grid 2x2 replacement
+                imageVector = Icons.Filled.Settings, // Placeholder for Grid 2x2
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface
+                tint = Color.Black
             )
         }
     }
@@ -322,7 +515,7 @@ fun ParticleSystem() {
         val now = time.value
         val width = size.width
         val height = size.height
-        
+
         for (i in 0 until 20) {
             var x = width / 2 + cos(i.toDouble() + now * 2) * 100
             var y = height / 2 + sin(i.toDouble() + now * 3) * 100
