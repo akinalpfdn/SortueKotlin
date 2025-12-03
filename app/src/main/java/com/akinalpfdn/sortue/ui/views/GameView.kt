@@ -31,12 +31,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.Window
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -61,6 +63,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -188,45 +192,80 @@ fun GameView(vm: GameViewModel = viewModel()) {
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Grid Size Slider
+            // Transparent Modern Slider
             Column(
                 modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp, vertical = 10.dp), // More side padding for a centered look
+                verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
+                // Label & Value Row
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = stringResource(R.string.grid_size),
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Black.copy(alpha = 0.6f)
                     )
+
                     Text(
                         text = "${gridDimension}x${gridDimension}",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.secondary
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF3F51B5) // Indigo
                     )
                 }
 
-                Slider(
-                    value = gridDimension.toFloat(),
-                    onValueChange = { newValue ->
-                        val newInt = newValue.toInt()
-                        if (newInt != gridDimension) {
-                            vm.startNewGame(dimension = newInt, preserveColors = true)
-                        }
-                    },
-                    valueRange = 4f..12f,
-                    steps = 7,
-                    colors = SliderDefaults.colors(
-                        thumbColor = MaterialTheme.colorScheme.primary,
-                        activeTrackColor = MaterialTheme.colorScheme.primary
+                // Slider Row
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Small Grid Icon
+                    Icon(
+                        imageVector = Icons.Filled.Window,
+                        contentDescription = null,
+                        tint = Color.Gray.copy(alpha = 0.3f),
+                        modifier = Modifier.size(20.dp)
                     )
-                )
+
+                    val haptic = LocalHapticFeedback.current
+
+                    Slider(
+                        value = gridDimension.toFloat(),
+                        onValueChange = { newValue ->
+                            val newInt = newValue.toInt()
+                            if (newInt != gridDimension) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                vm.startNewGame(dimension = newInt, preserveColors = true)
+                            }
+                        },
+                        valueRange = 4f..12f,
+                        steps = 7,
+                        modifier = Modifier.weight(1f),
+                        colors = SliderDefaults.colors(
+                            thumbColor = Color(0xFF3F51B5),
+                            activeTrackColor = Color(0xFF3F51B5),
+                            inactiveTrackColor = Color(0xFF3F51B5).copy(alpha = 0.15f), // Very subtle track
+                            activeTickColor = Color.Transparent, // Hides the dots for a clean look
+                            inactiveTickColor = Color.Transparent
+                        )
+                    )
+
+                    // Large Grid Icon
+                    Icon(
+                        imageVector = Icons.Filled.GridOn,
+                        contentDescription = null,
+                        tint = Color.Gray.copy(alpha = 0.3f),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         }
 
