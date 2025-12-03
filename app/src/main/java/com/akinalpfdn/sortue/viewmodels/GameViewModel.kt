@@ -43,9 +43,55 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     private var currentCorners: Corners? = null
 
+    private val gson = com.google.gson.Gson()
+
     init {
-        startNewGame()
+        if (!loadGameState()) {
+            startNewGame()
+        }
     }
+
+    private fun saveGameState() {
+        val state = GameState(
+            tiles = _tiles.value,
+            status = _status.value,
+            gridDimension = _gridDimension.value,
+            moves = _moves.value,
+            corners = currentCorners
+        )
+        val json = gson.toJson(state)
+        prefs.edit().putString("saved_game_state", json).apply()
+    }
+
+    private fun loadGameState(): Boolean {
+        val json = prefs.getString("saved_game_state", null) ?: return false
+        return try {
+            val state = gson.fromJson(json, GameState::class.java)
+            _tiles.value = state.tiles
+            _status.value = state.status
+            _gridDimension.value = state.gridDimension
+            _moves.value = state.moves
+            currentCorners = state.corners
+            
+            // Restore level count for display
+            val dim = state.gridDimension
+            val savedLevel = prefs.getInt("level_count_$dim", 0)
+            _currentLevel.value = savedLevel + 1
+            
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    private data class GameState(
+        val tiles: List<Tile>,
+        val status: GameStatus,
+        val gridDimension: Int,
+        val moves: Int,
+        val corners: Corners?
+    )
 
     fun startNewGame(dimension: Int? = null, preserveColors: Boolean = false) {
         dimension?.let { _gridDimension.value = it }
@@ -106,6 +152,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         _tiles.value = newTiles
+        saveGameState()
 
         // 3. Schedule Shuffle
         shuffleJob = viewModelScope.launch {
@@ -148,6 +195,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
         _tiles.value = finalGrid.filterNotNull()
         _status.value = GameStatus.PLAYING
+        saveGameState()
     }
 
     fun selectTile(tile: Tile) {
@@ -182,6 +230,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             
             _tiles.value = currentList
             _moves.value += 1
+            saveGameState()
             checkWinCondition()
         }
     }
@@ -209,6 +258,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             currentList[targetIdx].currentIdx = targetIdx
 
             _tiles.value = currentList
+            saveGameState()
             checkWinCondition()
         }
     }
@@ -232,6 +282,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             winJob = viewModelScope.launch {
                 delay(2000)
                 _status.value = GameStatus.WON
+                saveGameState()
             }
         }
     }
