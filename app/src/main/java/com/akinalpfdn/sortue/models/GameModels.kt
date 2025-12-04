@@ -2,6 +2,7 @@ package com.akinalpfdn.sortue.models
 
 import androidx.compose.ui.graphics.Color
 import kotlin.math.abs
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 // Raw RGB Data structure to ensure mathematical precision
@@ -22,6 +23,14 @@ data class RGBData(
                 abs(b - other.b) < threshold
     }
 
+    // Helper to check distance between colors
+    fun distance(other: RGBData): Double {
+        val dr = r - other.r
+        val dg = g - other.g
+        val db = b - other.b
+        return sqrt(dr * dr + dg * dg + db * db)
+    }
+
     companion object {
         // Generate random RGB
         val random: RGBData
@@ -30,6 +39,23 @@ data class RGBData(
                 g = Random.nextDouble(0.0, 1.0),
                 b = Random.nextDouble(0.0, 1.0)
             )
+
+        // Create RGBData from Hue, Saturation, Brightness
+        // h: 0.0-1.0, s: 0.0-1.0, b: 0.0-1.0
+        fun fromHSB(h: Double, s: Double, b: Double): RGBData {
+            val hFloat = (h * 360.0).toFloat() // Android Color.hsvToColor uses 0-360 for hue
+            val sFloat = s.toFloat()
+            val bFloat = b.toFloat()
+
+            val hsv = floatArrayOf(hFloat, sFloat, bFloat)
+            val androidColor = android.graphics.Color.HSVToColor(hsv)
+
+            val red = android.graphics.Color.red(androidColor) / 255.0
+            val green = android.graphics.Color.green(androidColor) / 255.0
+            val blue = android.graphics.Color.blue(androidColor) / 255.0
+
+            return RGBData(red, green, blue)
+        }
 
         // Bilinear Interpolation logic
         fun interpolated(
@@ -77,7 +103,7 @@ data class Tile(
     val id: Int,             // Unique ID
     val correctId: Int,      // The grid index where this tile SHOULD be
     val rgb: RGBData,        // The color data
-    val isFixed: Boolean,       // Is this a corner anchor?
+    val isFixed: Boolean,    // Is this a corner anchor?
     var currentIdx: Int      // Logic helper
 )
 

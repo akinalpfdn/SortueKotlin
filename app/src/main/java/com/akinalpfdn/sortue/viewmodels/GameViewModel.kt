@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Collections
+import kotlin.random.Random
 
 class GameViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -72,12 +73,12 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             _gridDimension.value = state.gridDimension
             _moves.value = state.moves
             currentCorners = state.corners
-            
+
             // Restore level count for display
             val dim = state.gridDimension
             val savedLevel = prefs.getInt("level_count_$dim", 0)
             _currentLevel.value = savedLevel + 1
-            
+
             true
         } catch (e: Exception) {
             e.printStackTrace()
@@ -114,12 +115,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val corners = if (preserveColors && currentCorners != null) {
             currentCorners!!
         } else {
-            Corners(
-                tl = RGBData.random,
-                tr = RGBData.random,
-                bl = RGBData.random,
-                br = RGBData.random
-            ).also { currentCorners = it }
+            // Use Curated Strategy
+            generateHarmoniousCorners().also { currentCorners = it }
         }
 
         val newTiles = mutableListOf<Tile>()
@@ -160,6 +157,148 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             shuffleBoard()
         }
     }
+    enum class HarmonyProfile {
+        SUNSET, OCEAN, FOREST, BERRY, AURORA, CITRUS, MIDNIGHT
+    }
+    // Generates aesthetically pleasing palettes using Curated Harmony Profiles
+    private fun generateHarmoniousCorners(): Corners {
+
+
+
+        val profile = HarmonyProfile.values().random()
+
+        // Helper to randomize slightly within a safe range
+        fun rnd(min: Double, max: Double): Double = Random.nextDouble(min, max)
+
+        var h1 = 0.0; var s1 = 0.0; var b1 = 0.0
+        var h2 = 0.0; var s2 = 0.0; var b2 = 0.0
+        var h3 = 0.0; var s3 = 0.0; var b3 = 0.0
+        var h4 = 0.0; var s4 = 0.0; var b4 = 0.0
+
+        when (profile) {
+            HarmonyProfile.SUNSET -> {
+                // Warm gradient: Yellow/Orange -> Purple/Pink
+                h1 = rnd(0.12, 0.16) // Warm Yellow
+                s1 = rnd(0.2, 0.4); b1 = rnd(0.95, 1.0) // Light
+
+                h2 = rnd(0.02, 0.08) // Orange/Red
+                s2 = rnd(0.7, 0.9); b2 = rnd(0.9, 1.0)
+
+                h3 = rnd(0.85, 0.92) // Magenta
+                s3 = rnd(0.4, 0.6); b3 = rnd(0.8, 0.9)
+
+                h4 = rnd(0.75, 0.82) // Deep Purple
+                s4 = rnd(0.8, 1.0); b4 = rnd(0.3, 0.5) // Dark
+            }
+            HarmonyProfile.OCEAN -> {
+                // Cool gradient: White/Cyan -> Deep Navy
+                h1 = rnd(0.5, 0.55) // Cyan
+                s1 = rnd(0.05, 0.2); b1 = rnd(0.95, 1.0) // Almost white
+
+                h2 = rnd(0.55, 0.6) // Sky Blue
+                s2 = rnd(0.5, 0.7); b2 = rnd(0.9, 1.0)
+
+                h3 = rnd(0.6, 0.65) // Azure
+                s3 = rnd(0.6, 0.8); b3 = rnd(0.6, 0.8)
+
+                h4 = rnd(0.65, 0.7) // Deep Blue
+                s4 = rnd(0.9, 1.0); b4 = rnd(0.2, 0.4) // Dark
+            }
+            HarmonyProfile.FOREST -> {
+                // Fresh greens: Lime -> Emerald -> Teal (No Brown!)
+                h1 = rnd(0.25, 0.32) // Fresh Green/Lime
+                s1 = rnd(0.3, 0.5); b1 = rnd(0.9, 1.0) // Bright
+
+                h2 = rnd(0.35, 0.42) // Green
+                s2 = rnd(0.6, 0.8); b2 = rnd(0.8, 0.9)
+
+                h3 = rnd(0.45, 0.5) // Teal Green
+                s3 = rnd(0.5, 0.7); b3 = rnd(0.6, 0.8)
+
+                h4 = rnd(0.5, 0.55) // Dark Teal
+                s4 = rnd(0.8, 1.0); b4 = rnd(0.2, 0.4) // Dark
+            }
+            HarmonyProfile.BERRY -> {
+                // Pink -> Red -> Purple
+                h1 = rnd(0.9, 0.95) // Light Pink
+                s1 = rnd(0.2, 0.4); b1 = rnd(0.95, 1.0)
+
+                h2 = rnd(0.95, 1.0) // Red/Pink
+                s2 = rnd(0.7, 0.9); b2 = rnd(0.8, 1.0)
+
+                h3 = rnd(0.7, 0.8) // Violet
+                s3 = rnd(0.5, 0.7); b3 = rnd(0.6, 0.8)
+
+                h4 = rnd(0.8, 0.9) // Deep Magenta
+                s4 = rnd(0.9, 1.0); b4 = rnd(0.2, 0.4)
+            }
+            HarmonyProfile.AURORA -> {
+                // Green -> Blue -> Purple (Classic Northern Lights)
+                h1 = rnd(0.3, 0.35) // Green
+                s1 = rnd(0.4, 0.6); b1 = rnd(0.9, 1.0)
+
+                h2 = rnd(0.5, 0.55) // Cyan
+                s2 = rnd(0.6, 0.8); b2 = rnd(0.8, 0.9)
+
+                h3 = rnd(0.6, 0.65) // Blue
+                s3 = rnd(0.5, 0.7); b3 = rnd(0.6, 0.8)
+
+                h4 = rnd(0.75, 0.8) // Purple
+                s4 = rnd(0.8, 1.0); b4 = rnd(0.3, 0.5)
+            }
+            HarmonyProfile.CITRUS -> {
+                // Yellow -> Orange -> Lime
+                h1 = rnd(0.14, 0.18) // Lemon Yellow
+                s1 = rnd(0.2, 0.4); b1 = rnd(0.95, 1.0)
+
+                h2 = rnd(0.08, 0.12) // Orange Yellow
+                s2 = rnd(0.6, 0.8); b2 = rnd(0.9, 1.0)
+
+                h3 = rnd(0.25, 0.3) // Lime
+                s3 = rnd(0.5, 0.7); b3 = rnd(0.7, 0.9)
+
+                h4 = rnd(0.02, 0.06) // Deep Orange
+                s4 = rnd(0.9, 1.0); b4 = rnd(0.4, 0.6)
+            }
+            HarmonyProfile.MIDNIGHT -> {
+                // Grey -> Blue -> Violet
+                h1 = rnd(0.6, 0.7) // Blue-ish Grey
+                s1 = rnd(0.0, 0.1); b1 = rnd(0.9, 1.0) // White/Grey
+
+                h2 = rnd(0.6, 0.65) // Slate Blue
+                s2 = rnd(0.3, 0.5); b2 = rnd(0.6, 0.8)
+
+                h3 = rnd(0.7, 0.75) // Violet Grey
+                s3 = rnd(0.4, 0.6); b3 = rnd(0.5, 0.7)
+
+                h4 = rnd(0.65, 0.7) // Midnight Blue
+                s4 = rnd(0.8, 1.0); b4 = rnd(0.1, 0.3) // Very Dark
+            }
+        }
+
+        // Define all 4 color objects
+        val c1 = RGBData.fromHSB(h1, s1, b1) // Lightest
+        val c4 = RGBData.fromHSB(h4, s4, b4) // Darkest
+        val c2 = RGBData.fromHSB(h2, s2, b2) // Mid 1
+        val c3 = RGBData.fromHSB(h3, s3, b3) // Mid 2
+
+        // Rotate/Shuffle assignments so "Light" isn't always Top-Left
+        val rotation = Random.nextInt(0, 4)
+
+        val tl: RGBData
+        val tr: RGBData
+        val bl: RGBData
+        val br: RGBData
+
+        when (rotation) {
+            0 -> { tl = c1; tr = c2; bl = c3; br = c4 } // Original (Light TL -> Dark BR)
+            1 -> { tl = c3; tr = c1; bl = c4; br = c2 } // Rotated 90
+            2 -> { tl = c4; tr = c3; bl = c2; br = c1 } // Rotated 180
+            else -> { tl = c2; tr = c4; bl = c1; br = c3 } // Rotated 270
+        }
+
+        return Corners(tl, tr, bl, br)
+    }
 
     private fun shuffleBoard() {
         val currentTiles = _tiles.value
@@ -187,7 +326,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             if (finalGrid[i] == null) {
                 // Update currentIdx for logic
                 val tile = mutableTiles[mutIdx]
-                tile.currentIdx = i 
+                tile.currentIdx = i
                 finalGrid[i] = tile
                 mutIdx += 1
             }
@@ -223,11 +362,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
         if (idx1 != -1 && idx2 != -1) {
             Collections.swap(currentList, idx1, idx2)
-            
+
             // Update currentIdx
             currentList[idx1].currentIdx = idx1
             currentList[idx2].currentIdx = idx2
-            
+
             _tiles.value = currentList
             _moves.value += 1
             saveGameState()
@@ -239,11 +378,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         if (_status.value != GameStatus.PLAYING) return
 
         val currentList = _tiles.value.toMutableList()
-        
+
         // Find a tile that is NOT in its correct spot (and is not a corner)
         // In Kotlin list, index is the current position.
-        val wrongTileIndex = currentList.indexOfFirst { 
-            it.correctId != currentList.indexOf(it) && !it.isFixed 
+        val wrongTileIndex = currentList.indexOfFirst {
+            it.correctId != currentList.indexOf(it) && !it.isFixed
         }
 
         if (wrongTileIndex != -1) {
@@ -252,7 +391,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
             // Swap
             Collections.swap(currentList, wrongTileIndex, targetIdx)
-            
+
             // Update currentIdx
             currentList[wrongTileIndex].currentIdx = wrongTileIndex
             currentList[targetIdx].currentIdx = targetIdx
