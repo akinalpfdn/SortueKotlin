@@ -623,7 +623,8 @@ fun SolutionOverlay(tiles: List<Tile>, gridDimension: Int) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
+        )
+        {
             Text(
                 text = stringResource(R.string.target_gradient),
                 style = MaterialTheme.typography.headlineSmall,
@@ -632,33 +633,39 @@ fun SolutionOverlay(tiles: List<Tile>, gridDimension: Int) {
                 modifier = Modifier.shadow(4.dp)
             )
 
-
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(gridDimension),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    userScrollEnabled = false,
-                    modifier = Modifier.fillMaxWidth().padding(16.dp)
-                ) {
-                    itemsIndexed(solvedTiles) { _, tile ->
-                        Box(
-                            modifier = Modifier
-                                .aspectRatio(1f)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(tile.rgb.color)
-                        ) {
-                            if (tile.isFixed) {
-                                Box(
-                                    modifier = Modifier
-                                        .align(Alignment.Center)
-                                        .size(4.dp)
-                                        .background(Color.Black.copy(alpha = 0.3f), CircleShape)
-                                )
-                            }
+            Box(
+                modifier = Modifier
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Color.White)
+            ){
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(gridDimension),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                userScrollEnabled = false,
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            ) {
+                itemsIndexed(solvedTiles) { _, tile ->
+                    Box(
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(tile.rgb.color)
+                    ) {
+                        if (tile.isFixed) {
+                            Box(
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .size(4.dp)
+                                    .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                            )
                         }
+                    }
 
                 }
             }
+        }
         }
     }
 }
