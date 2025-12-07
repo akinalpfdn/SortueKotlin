@@ -355,7 +355,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun swapTiles(id1: Int, id2: Int) {
+    fun swapTiles(id1: Int, id2: Int) {
         val currentList = _tiles.value.toMutableList()
         val idx1 = currentList.indexOfFirst { it.id == id1 }
         val idx2 = currentList.indexOfFirst { it.id == id2 }

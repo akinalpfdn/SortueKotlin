@@ -80,6 +80,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.akinalpfdn.sortue.R
 import com.akinalpfdn.sortue.models.GameStatus
@@ -109,6 +118,15 @@ fun GameView(vm: GameViewModel = viewModel()) {
     var showWinOverlay by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val haptic = LocalHapticFeedback.current
+
+    // HYBRID INTERACTION STATE
+    var draggingTile by remember { mutableStateOf<Tile?>(null) }
+    var pressedTileId by remember { mutableStateOf<Int?>(null) }
+    var dragPosition by remember { mutableStateOf(Offset.Zero) }
+    // Map of Tile ID to its Bounds in Root coordinates
+    val itemBounds = remember { mutableMapOf<Int, Rect>() }
+    // Threshold for drag detection
+    val dragThreshold = with(LocalDensity.current) { 10.dp.toPx() } // Using 10.dp as safe "pixel" equivalent logic
 
     // CORRECTED SEQUENCE LOGIC
     LaunchedEffect(status) {
@@ -222,21 +240,104 @@ fun GameView(vm: GameViewModel = viewModel()) {
                 ) {
                     itemsIndexed(tiles, key = { _, it -> it.id }) { index, tile ->
                         Box(modifier = Modifier.animateItem()) {
+                            val isDragging = draggingTile?.id == tile.id
                             TileView(
                                 tile = tile,
-                                isSelected = selectedTileId == tile.id,
+                                isSelected = selectedTileId == tile.id || pressedTileId == tile.id,
                                 isWon = status == GameStatus.WON || status == GameStatus.ANIMATING,
                                 status = status,
                                 index = index,
                                 gridWidth = gridDimension,
-                                onClick = {
-                                    // Prevent interaction if already correct
-                                    if (status == GameStatus.PLAYING && tile.correctId == index && !tile.isFixed) {
-                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove) // Tiny bump
-                                        return@TileView
+                                modifier = Modifier
+                                    .onGloballyPositioned { coordinates ->
+                                        itemBounds[tile.id] = coordinates.boundsInRoot()
                                     }
-                                    vm.selectTile(tile)
-                                }
+                                    .graphicsLayer {
+                                        alpha = if (isDragging) 0f else 1f
+                                    }
+                                    .pointerInput(tile.id, status) {
+                                        if (status != GameStatus.PLAYING || tile.isFixed) return@pointerInput
+                                        
+                                        awaitEachGesture {
+                                            val down = awaitFirstDown(requireUnconsumed = false)
+                                            val startPoint = down.position
+                                            var dragStarted = false
+                                            
+                                            // 1. Touch Down: Highlight
+                                            pressedTileId = tile.id
+                                            
+                                            // Loop to detect Move or Up
+                                            do {
+                                                val event = awaitPointerEvent()
+                                                val change = event.changes.firstOrNull() ?: break
+                                                
+                                                val currentPoint = change.position
+                                                val dist = (currentPoint - startPoint).getDistance()
+                                                
+                                                if (!dragStarted && dist > dragThreshold) {
+                                                    // 2. Touch Move: Switch to Drag Mode
+                                                    dragStarted = true
+                                                    draggingTile = tile
+                                                    pressedTileId = null // Cancel press highlight
+                                                    
+                                                    // Initial drag position (center of the tile or touch point)
+                                                    // We want the tile to center on the finger ideally, or stick to offset
+                                                    // Simple approach: Center on finger
+                                                    val bounds = itemBounds[tile.id] ?: Rect.Zero
+                                                    dragPosition = bounds.topLeft + (currentPoint) - Offset(bounds.width/2, bounds.height/2)
+                                                    // Better: Keep relative offset. 
+                                                    // But for "Swap", centering feels good. Let's calculate precise relative calc if needed.
+                                                    // Let's stick to: "dragPosition" is the visual TopLeft of the floating tile.
+                                                    // Initial dragPos = Bounds.TopLeft
+                                                    dragPosition = (itemBounds[tile.id]?.topLeft ?: Offset.Zero) + (currentPoint - startPoint)
+                                                }
+                                                
+                                                if (dragStarted) {
+                                                    dragPosition += change.positionChange()
+                                                    change.consume()
+                                                }
+                                                
+                                            } while (event.changes.any { it.pressed })
+                                            
+                                            // 3. Touch Up
+                                            pressedTileId = null
+                                            
+                                            if (dragStarted) {
+                                                // Drop Logic
+                                                val dropCenter = dragPosition + Offset(
+                                                    (itemBounds[tile.id]?.width ?: 0f) / 2,
+                                                    (itemBounds[tile.id]?.height ?: 0f) / 2
+                                                )
+                                                // Find target
+                                                val targetId = itemBounds.entries.firstOrNull { (_, rect) ->
+                                                    rect.contains(dropCenter)
+                                                }?.key
+                                                
+                                                if (targetId != null && targetId != tile.id) {
+                                                    // Check if target is fixed? The VM handles checking, but we should be safe
+                                                    // Assuming VM allows swapping with non-fixed.
+                                                    // We need to check if target is fixed? 
+                                                    // We can optimize by checking `tiles` list but VM does it.
+                                                    val targetTile = tiles.find { it.id == targetId }
+                                                    if (targetTile != null && !targetTile.isFixed) {
+                                                       haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                       vm.swapTiles(tile.id, targetId) 
+                                                    }
+                                                }
+                                                draggingTile = null
+                                                dragStarted = false
+                                            } else {
+                                                // Tap Logic
+                                                // If we didn't drag, it's a tap.
+                                                // Prevent interaction if already correct (reusing existing logic)
+                                                if (status == GameStatus.PLAYING && tile.correctId == index && !tile.isFixed) {
+                                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                                } else {
+                                                    vm.selectTile(tile)
+                                                }
+                                            }
+                                        }
+                                    }
                             )
                         }
                     }
@@ -344,6 +445,34 @@ fun GameView(vm: GameViewModel = viewModel()) {
         ) {
             SolutionOverlay(tiles = tiles, gridDimension = gridDimension)
         }
+
+        // Dragging Overlay
+        draggingTile?.let { tile ->
+            val tileSize = itemBounds[tile.id]?.size ?: androidx.compose.ui.geometry.Size(100f, 100f)
+            // Convert pixels to dp for Size
+            val density = LocalDensity.current
+            val widthDp = with(density) { tileSize.width.toDp() }
+            val heightDp = with(density) { tileSize.height.toDp() }
+            
+            // We need to match the TileView signature
+            // We use a Box at the Root to position it absolutely
+            Box(
+                modifier = Modifier
+                    .offset { IntOffset(dragPosition.x.toInt(), dragPosition.y.toInt()) }
+                    .size(widthDp, heightDp)
+                    .zIndex(100f) // Ensure on top
+            ) {
+                 TileView(
+                    tile = tile,
+                    isSelected = true, // Highlighted while dragging
+                    isWon = false,
+                    status = GameStatus.PLAYING,
+                    index = 0, // irrelevant for visual only
+                    gridWidth = gridDimension,
+                    modifier = Modifier.fillMaxSize() // Fill the box
+                )
+            }
+        }
     }
 }
 
@@ -355,7 +484,8 @@ fun TileView(
     status: GameStatus,
     index: Int,
     gridWidth: Int,
-    onClick: () -> Unit
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null // Made optional and nullable as we might use external gesture
 ) {
     val x = index % gridWidth
     val y = index / gridWidth
@@ -403,7 +533,8 @@ fun TileView(
                 shape = RoundedCornerShape(8.dp)
             )
             // Add interaction source to disable ripple if needed, or rely on clickable enabled state
-            .clickable(enabled = !tile.isFixed && !isCorrectlyPlaced) { onClick() }
+            .then(modifier)
+            .then(if (onClick != null) Modifier.clickable(enabled = !tile.isFixed && !isCorrectlyPlaced) { onClick() } else Modifier)
     ) {
         // Overlay Icons
         if (tile.isFixed) {
