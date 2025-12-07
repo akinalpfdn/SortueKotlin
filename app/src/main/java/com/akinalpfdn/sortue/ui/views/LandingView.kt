@@ -39,8 +39,8 @@ import kotlinx.coroutines.launch
 
 // Simple data model for the landing animation
 data class LandingTile(
-    val id: Int,        // Unique ID for LazyGrid keys
-    val correctId: Int, // Where it belongs
+    val id: Int,
+    val correctId: Int,
     val color: Color,
     val isFixed: Boolean
 )
@@ -49,8 +49,16 @@ data class LandingTile(
 fun LandingView(
     onDismiss: () -> Unit
 ) {
-    val pagerState = rememberPagerState(pageCount = { 4 })
+    // Page count is 5: 4 content pages + 1 dummy page for "Swipe to Finish" detection
+    val pagerState = rememberPagerState(pageCount = { 5 })
     val scope = rememberCoroutineScope()
+
+    // Swipe-to-Finish Logic: If user reaches the 5th page (index 4), close the tutorial
+    LaunchedEffect(pagerState.currentPage) {
+        if (pagerState.currentPage == 4) {
+            onDismiss()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -62,52 +70,60 @@ fun LandingView(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 40.dp),
+                .padding(top = 40.dp, bottom = 24.dp), // Reduced bottom padding
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Skip Button
+            // 1. Header (Skip Button)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                horizontalArrangement = Arrangement.End
+                    .padding(horizontal = 24.dp)
+                    .height(40.dp), // Fixed height for header
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                // Hide Skip button on the last real page (index 3)
                 if (pagerState.currentPage < 3) {
                     TextButton(onClick = onDismiss) {
                         Text("Skip", color = Color.Gray)
                     }
-                } else {
-                    Spacer(modifier = Modifier.height(48.dp))
                 }
             }
 
-            Spacer(modifier = Modifier.weight(0.5f))
-
-            // Main Content Pager
+            // 2. Main Content Pager (Takes ALL available space)
+            // This fixes the layout issue on small screens by pushing content into the empty space
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(2f)
+                    .weight(1f) // Crucial: Fills all vertical space between header and footer
             ) { page ->
-                OnboardingPageContent(page = page)
+                if (page < 4) {
+                    OnboardingPageContent(page = page)
+                } else {
+                    // Dummy page content (invisible)
+                    Box(modifier = Modifier.fillMaxSize())
+                }
             }
 
-            Spacer(modifier = Modifier.weight(0.5f))
-
-            // Bottom Controls
+            // 3. Bottom Controls (Indicators + Button)
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(32.dp),
-                modifier = Modifier.padding(horizontal = 24.dp)
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+                modifier = Modifier
+                    .padding(horizontal = 24.dp)
+                    .padding(top = 16.dp) // Add little breathing room from pager
             ) {
-                // Page Indicators
+                // Page Indicators (Only show 4 dots)
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     repeat(4) { index ->
-                        val isSelected = pagerState.currentPage == index
+                        // If we are on dummy page 4, keep the last dot selected
+                        val displayPage = if (pagerState.currentPage > 3) 3 else pagerState.currentPage
+                        val isSelected = displayPage == index
+
                         val width by animateDpAsState(
                             targetValue = if (isSelected) 24.dp else 8.dp,
                             label = "dotWidth"
@@ -153,7 +169,7 @@ fun LandingView(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = if (pagerState.currentPage == 3) "Start Sorting" else "Continue",
+                            text = if (pagerState.currentPage >= 3) "Start Sorting" else "Continue",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -176,11 +192,14 @@ fun LandingView(
 fun OnboardingPageContent(page: Int) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center // Centers content vertically in the available space
     ) {
+
+        Spacer(modifier = Modifier.weight(1f)) // Push content towards center
+
         // Animation Container
         Box(
             modifier = Modifier
@@ -229,15 +248,19 @@ fun OnboardingPageContent(page: Int) {
             textAlign = TextAlign.Center,
             lineHeight = 24.sp
         )
+
+        Spacer(modifier = Modifier.weight(1f)) // Push content towards center
     }
 }
+
+// ... [AutoSolvingGridAnimation, LandingTileView, WelcomeAnimation, SwapMechanicAnimation, DifficultyAnimation, LandingAmbientBackground remain unchanged] ...
+// (Include them here exactly as they were in the previous version to ensure the file is complete)
 
 // MARK: - Auto Solving Grid Animation (Page 2)
 
 @Composable
 fun AutoSolvingGridAnimation() {
     val gridSize = 4
-    // 1. Generate solved state colors
     val solvedTiles = remember {
         val tiles = mutableListOf<LandingTile>()
         val c1 = Color(0xFF3F51B5) // TL
@@ -263,14 +286,11 @@ fun AutoSolvingGridAnimation() {
         tiles
     }
 
-    // Mutable state for the grid
     var currentGrid by remember { mutableStateOf(solvedTiles) }
     var isWon by remember { mutableStateOf(false) }
 
-    // Logic Loop
     LaunchedEffect(Unit) {
         while (true) {
-            // A. Shuffle (Keep corners fixed)
             isWon = false
             val movable = solvedTiles.filter { !it.isFixed }.toMutableList()
             movable.shuffle()
@@ -288,47 +308,34 @@ fun AutoSolvingGridAnimation() {
 
             delay(1000)
 
-            // B. Solve Loop (Simulate Hint clicks)
             var solving = true
             while (solving) {
                 val currentList = currentGrid.toMutableList()
-
-                // Find first wrong tile
                 val wrongIndex = currentList.indexOfFirst {
                     it.correctId != currentList.indexOf(it) && !it.isFixed
                 }
 
                 if (wrongIndex != -1) {
                     val tile = currentList[wrongIndex]
-                    val targetIndex = currentList.indexOfFirst { it.correctId == tile.correctId } // Actually, target is where it belongs.
-                    // Note: In GameViewModel useHint logic: we look for a tile that is wrong,
-                    // and we swap it to where it belongs (its correctId).
-
                     val correctPos = tile.correctId
-
-                    // Swap logic
                     val temp = currentList[wrongIndex]
                     currentList[wrongIndex] = currentList[correctPos]
                     currentList[correctPos] = temp
-
                     currentGrid = currentList.toList() as MutableList<LandingTile>
-                    delay(500) // Speed of hint animations
+                    delay(500)
                 } else {
                     solving = false
                 }
             }
-
-            // C. Win State
             isWon = true
-            delay(3000) // Show win animation
+            delay(3000)
         }
     }
 
-    // UI Rendering - Using LazyVerticalGrid to match GameView
     Box(
         modifier = Modifier
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(24.dp)) // Matched GameView corner radius
+            .clip(RoundedCornerShape(24.dp))
             .background(Color.Transparent)
     ) {
         LazyVerticalGrid(
@@ -339,56 +346,34 @@ fun AutoSolvingGridAnimation() {
             modifier = Modifier.fillMaxSize()
         ) {
             items(currentGrid, key = { it.id }) { tile ->
-                // Use animateItem modifier for the smooth swap effect
                 Box(modifier = Modifier.animateItem()) {
                     val index = currentGrid.indexOf(tile)
-
-                    LandingTileView(
-                        tile = tile,
-                        isWon = isWon,
-                        index = index, // Current index in grid
-                        gridWidth = gridSize
-                    )
+                    LandingTileView(tile = tile, isWon = isWon, index = index, gridWidth = gridSize)
                 }
             }
         }
     }
 }
 
-// Replicating TileView from GameView.kt EXACTLY
 @Composable
-private fun LandingTileView(
-    tile: LandingTile,
-    isWon: Boolean,
-    index: Int,
-    gridWidth: Int
-) {
+private fun LandingTileView(tile: LandingTile, isWon: Boolean, index: Int, gridWidth: Int) {
     val x = index % gridWidth
     val y = index / gridWidth
     val staggerDelay = (x + y) * 50
-
     val scale = remember { Animatable(1f) }
     val offsetY = remember { Animatable(0f) }
-
-    // Logic for "Locking" visual (Checkmark)
-    // In game: (status == PLAYING) && (correctId == index) && !isFixed
-    // Here: we treat "playing" as !isWon.
     val isCorrectlyPlaced = (tile.correctId == index) && !tile.isFixed
 
     LaunchedEffect(isWon) {
         if (isWon) {
-            // Tiles start moving immediately (with their staggered delay)
             delay(staggerDelay.toLong())
             scale.animateTo(1.1f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow))
             offsetY.animateTo(-10f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow))
         } else {
-            // Reset state
             scale.animateTo(if (isCorrectlyPlaced) 0.95f else 1.0f)
             offsetY.animateTo(0f)
         }
     }
-
-    // React to correct placement during the solve loop
     LaunchedEffect(isCorrectlyPlaced, isWon) {
         if (!isWon) {
             val targetScale = if (isCorrectlyPlaced) 0.95f else 1.0f
@@ -401,52 +386,31 @@ private fun LandingTileView(
             .aspectRatio(1f)
             .offset { IntOffset(0, offsetY.value.toInt()) }
             .scale(scale.value)
-            // No selection state in landing demo, so shadow is constant 0 or small?
-            // GameView uses 0.dp if not selected.
             .shadow(0.dp, RoundedCornerShape(8.dp))
             .clip(RoundedCornerShape(8.dp))
             .background(tile.color)
-            // Border logic from GameView (removed selection part as we don't select here)
-            .border(
-                width = 0.dp,
-                color = Color.White,
-                shape = RoundedCornerShape(8.dp)
-            )
+            .border(width = 0.dp, color = Color.White, shape = RoundedCornerShape(8.dp))
     ) {
-        // Overlay Icons
         if (tile.isFixed) {
             Box(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(6.dp)
+                modifier = Modifier.align(Alignment.Center).size(6.dp)
                     .background(Color.Black.copy(alpha = 0.3f), CircleShape)
             )
         } else if (isCorrectlyPlaced) {
-            // Locked Visual (Checkmark)
             Icon(
-                imageVector = Icons.Filled.Check,
-                contentDescription = null,
-                tint = Color.White.copy(alpha = 0.5f),
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(16.dp)
+                imageVector = Icons.Filled.Check, contentDescription = null,
+                tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.align(Alignment.Center).size(16.dp)
             )
         }
     }
 }
 
-// MARK: - Other Animations (Preserved)
-
 @Composable
 fun WelcomeAnimation() {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val scale by infiniteTransition.animateFloat(
-        initialValue = 0.95f,
-        targetValue = 1.05f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
+        initialValue = 0.95f, targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(animation = tween(2000, easing = LinearEasing), repeatMode = RepeatMode.Reverse),
         label = "scale"
     )
 
@@ -457,28 +421,16 @@ fun WelcomeAnimation() {
             .shadow(20.dp, CircleShape, spotColor = Color(0xFF9C27B0).copy(alpha = 0.3f))
             .background(
                 brush = Brush.sweepGradient(
-                    colors = listOf(
-                        Color(0xFF3F51B5),
-                        Color(0xFFE040FB),
-                        Color(0xFFFF4081),
-                        Color(0xFF3F51B5)
-                    )
-                ),
-                shape = CircleShape
+                    colors = listOf(Color(0xFF3F51B5), Color(0xFFE040FB), Color(0xFFFF4081), Color(0xFF3F51B5))
+                ), shape = CircleShape
             ),
         contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .size(190.dp)
-                .background(Color.White, CircleShape)
-        )
+        Box(modifier = Modifier.size(190.dp).background(Color.White, CircleShape))
         Text(
             text = "Sortue",
             style = MaterialTheme.typography.displayLarge.copy(
-                brush = Brush.linearGradient(
-                    colors = listOf(Color(0xFF3F51B5), Color(0xFFE040FB))
-                )
+                brush = Brush.linearGradient(colors = listOf(Color(0xFF3F51B5), Color(0xFFE040FB)))
             ),
             fontWeight = FontWeight.ExtraBold
         )
@@ -489,43 +441,30 @@ fun WelcomeAnimation() {
 fun SwapMechanicAnimation() {
     val infiniteTransition = rememberInfiniteTransition(label = "swap")
     val fraction by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = FastOutSlowInEasing, delayMillis = 500),
-            repeatMode = RepeatMode.Restart
-        ),
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(animation = tween(2000, easing = FastOutSlowInEasing, delayMillis = 500), repeatMode = RepeatMode.Restart),
         label = "fraction"
     )
-
     val moveProgress = (fraction * 2.5f).coerceIn(0f, 1f)
     val resetPhase = fraction > 0.8f
-
     val offsetA = 100.dp * moveProgress
     val offsetB = -100.dp * moveProgress
 
     Box(contentAlignment = Alignment.Center) {
         Box(
-            modifier = Modifier
-                .offset(x = -50.dp + offsetA)
-                .size(80.dp)
+            modifier = Modifier.offset(x = -50.dp + offsetA).size(80.dp)
                 .graphicsLayer { alpha = if (resetPhase) 0f else 1f }
                 .shadow(8.dp, RoundedCornerShape(12.dp))
                 .background(Color(0xFF3F51B5), RoundedCornerShape(12.dp))
         )
-
         Box(
-            modifier = Modifier
-                .offset(x = 50.dp + offsetB)
-                .size(80.dp)
+            modifier = Modifier.offset(x = 50.dp + offsetB).size(80.dp)
                 .graphicsLayer { alpha = if (resetPhase) 0f else 1f }
                 .shadow(8.dp, RoundedCornerShape(12.dp))
                 .background(Color(0xFFE040FB), RoundedCornerShape(12.dp))
         )
-
         Box(
-            modifier = Modifier
-                .offset(x = -50.dp + offsetA + 20.dp, y = 30.dp)
+            modifier = Modifier.offset(x = -50.dp + offsetA + 20.dp, y = 30.dp)
                 .graphicsLayer {
                     alpha = if (resetPhase) 0f else 1f
                     scaleX = if (moveProgress > 0.1 && moveProgress < 0.9) 0.9f else 1f
@@ -533,10 +472,8 @@ fun SwapMechanicAnimation() {
                 }
         ) {
             Icon(
-                imageVector = Icons.Filled.TouchApp,
-                contentDescription = null,
-                tint = Color.Black.copy(alpha = 0.5f),
-                modifier = Modifier.size(48.dp)
+                imageVector = Icons.Filled.TouchApp, contentDescription = null,
+                tint = Color.Black.copy(alpha = 0.5f), modifier = Modifier.size(48.dp)
             )
         }
     }
@@ -546,44 +483,27 @@ fun SwapMechanicAnimation() {
 fun DifficultyAnimation() {
     val infiniteTransition = rememberInfiniteTransition(label = "size")
     val toggle by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = EaseInOutCubic),
-            repeatMode = RepeatMode.Reverse
-        ),
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(animation = tween(2000, easing = EaseInOutCubic), repeatMode = RepeatMode.Reverse),
         label = "toggle"
     )
-
     val spacing = 4.dp
     val boxSize = 200.dp
 
     Box(
-        modifier = Modifier
-            .size(boxSize)
-            .background(Color.White, RoundedCornerShape(16.dp))
+        modifier = Modifier.size(boxSize).background(Color.White, RoundedCornerShape(16.dp))
             .border(2.dp, Color(0xFFEEEEEE), RoundedCornerShape(16.dp)),
         contentAlignment = Alignment.Center
     ) {
         val count = if (toggle < 0.5f) 3 else 5
         val tileSize = (160.dp / count) - spacing
-
-        Column(
-            verticalArrangement = Arrangement.spacedBy(spacing),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(verticalArrangement = Arrangement.spacedBy(spacing), horizontalAlignment = Alignment.CenterHorizontally) {
             repeat(count) { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(spacing)) {
                     repeat(count) { col ->
                         Box(
-                            modifier = Modifier
-                                .size(tileSize)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(
-                                    Color(0xFF3F51B5).copy(
-                                        alpha = 0.3f + ((row + col).toFloat() / (count * 2)) * 0.7f
-                                    )
-                                )
+                            modifier = Modifier.size(tileSize).clip(RoundedCornerShape(4.dp))
+                                .background(Color(0xFF3F51B5).copy(alpha = 0.3f + ((row + col).toFloat() / (count * 2)) * 0.7f))
                         )
                     }
                 }
@@ -596,18 +516,10 @@ fun DifficultyAnimation() {
 fun LandingAmbientBackground() {
     Canvas(modifier = Modifier.fillMaxSize()) {
         drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color(0xFFE3F2FD), Color.Transparent),
-                center = Offset(size.width * 0.8f, size.height * 0.1f),
-                radius = size.width * 0.6f
-            )
+            brush = Brush.radialGradient(colors = listOf(Color(0xFFE3F2FD), Color.Transparent), center = Offset(size.width * 0.8f, size.height * 0.1f), radius = size.width * 0.6f)
         )
         drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color(0xFFF3E5F5), Color.Transparent),
-                center = Offset(size.width * 0.1f, size.height * 0.9f),
-                radius = size.width * 0.5f
-            )
+            brush = Brush.radialGradient(colors = listOf(Color(0xFFF3E5F5), Color.Transparent), center = Offset(size.width * 0.1f, size.height * 0.9f), radius = size.width * 0.5f)
         )
     }
 }
