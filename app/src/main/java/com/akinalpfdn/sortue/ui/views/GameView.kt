@@ -156,74 +156,81 @@ fun GameView(vm: GameViewModel = viewModel()) {
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // Header Section
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 28.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = { showAbout = true },
-                    modifier = Modifier.size(44.dp)
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(top = 24.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    StatusIcon(status = status)
+                    IconButton(
+                        onClick = { showAbout = true },
+                        modifier = Modifier.size(44.dp)
+                    ) {
+                        StatusIcon(status = status)
+                    }
+
+                    Column(
+                        modifier = Modifier.padding(start = 12.dp),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Text(
+                            text = stringResource(R.string.app_name),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = stringResource(
+                                R.string.level_display,
+                                currentLevel,
+                                gridDimension,
+                                gridDimension,
+                                moves
+                            ).uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Gray,
+                            letterSpacing = 0.5.sp
+                        )
+                    }
                 }
 
-                Column(
-                    modifier = Modifier.padding(start = 12.dp),
-                    horizontalAlignment = Alignment.Start
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.End
                 ) {
-                    Text(
-                        text = stringResource(R.string.app_name),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = stringResource(
-                            R.string.level_display,
-                            currentLevel,
-                            gridDimension,
-                            gridDimension,
-                            moves
-                        ).uppercase(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.Gray,
-                        letterSpacing = 0.5.sp
-                    )
-                }
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    // Solution Preview Button
-                    CircleButton(
-                        icon = Icons.Filled.Visibility, // Eye icon
-                        onClick = {
-                            if (!showSolutionPreview) {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                showSolutionPreview = true
-                                scope.launch {
-                                    delay(2000) // Hide after 2 seconds
-                                    showSolutionPreview = false
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        // Solution Preview Button
+                        CircleButton(
+                            icon = Icons.Filled.Visibility, // Eye icon
+                            onClick = {
+                                if (!showSolutionPreview) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    showSolutionPreview = true
+                                    scope.launch {
+                                        delay(2000) // Hide after 2 seconds
+                                        showSolutionPreview = false
+                                    }
                                 }
-                            }
-                        },
-                        enabled = status == GameStatus.PLAYING && !showSolutionPreview
-                    )
-                    CircleButton(
-                        icon = Icons.Filled.Lightbulb,
-                        onClick = { vm.useHint() },
-                        enabled = status == GameStatus.PLAYING
-                    )
-                    CircleButton(
-                        icon = Icons.Filled.Shuffle,
-                        onClick = { vm.startNewGame() },
-                        enabled = status != GameStatus.PREVIEW
-                    )
+                            },
+                            enabled = status == GameStatus.PLAYING && !showSolutionPreview
+                        )
+                        CircleButton(
+                            icon = Icons.Filled.Lightbulb,
+                            onClick = { vm.useHint() },
+                            enabled = status == GameStatus.PLAYING
+                        )
+                        CircleButton(
+                            icon = Icons.Filled.Shuffle,
+                            onClick = { vm.startNewGame() },
+                            enabled = status != GameStatus.PREVIEW
+                        )
+                    }
                 }
             }
-
-            Spacer(modifier = Modifier.weight(1f))
+ 
 
             // Game Grid Container
             Box(
