@@ -94,4 +94,22 @@
     <string name="how_to_play_title">Nasıl Oynanır</string>
     <string name="how_to_play_desc">Kareleri sürükleyip bırakarak köşeler arasında mükemmel bir renk geçişi oluştur.  Köşeler sabit başlangıç ve bitiş noktalarıdır.</string>
     <string name="start_game">Oyuna Başla</string>
+
+    <!-- Settings & Overlay -->
+    <string name="settings">Ayarlar</string>
+    <string name="about">Hakkında</string>
+    <string name="music">Müzik</string>
+    <string name="target_gradient">Hedef Gradyan</string>
+    <!-- Landing Page Content -->
+    <string name="skip">Atla</string>
+    <string name="start_sorting">Çözmeye Başla</string>
+    <string name="continue_btn">Devam Et</string>
+    <string name="welcome_title">Sortue\'ya Hoşgeldin</string>
+    <string name="swap_title">Değiştir ve Çöz</string>
+    <string name="harmony_title">Uyumu Bul</string>
+    <string name="challenge_title">Kendine Meydan Oku</string>
+    <string name="welcome_desc">Güzel renk geçişi bulmacalarıyla zihnini rahatlat.</string>
+    <string name="swap_desc">Yer değiştirmek için herhangi bir kareyi sürükle. Renkleri doğru yere koy.</string>
+    <string name="harmony_desc">Renklerin akışını izle. Mükemmel gradyanı ortaya çıkarmak için bulmacayı çöz.</string>
+    <string name="challenge_desc">Izgara boyutunu ruh haline göre ayarla, 4x4\'ten 12x12 uzman seviyesine kadar.</string>
 </resources>

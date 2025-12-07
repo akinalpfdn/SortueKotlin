@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
+import com.akinalpfdn.sortue.R
 
 // Simple data model for the landing animation
 data class LandingTile(
@@ -85,7 +87,7 @@ fun LandingView(
                 // Hide Skip button on the last real page (index 3)
                 if (pagerState.currentPage < 3) {
                     TextButton(onClick = onDismiss) {
-                        Text("Skip", color = Color.Gray)
+                        Text(stringResource(R.string.skip), color = Color.Gray)
                     }
                 }
             }
@@ -164,12 +166,11 @@ fun LandingView(
                     ),
                     shape = RoundedCornerShape(16.dp)
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
+ Row(                        horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = if (pagerState.currentPage >= 3) "Start Sorting" else "Continue",
+                            text = if (pagerState.currentPage >= 3) stringResource(R.string.start_sorting) else stringResource(R.string.continue_btn),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -216,18 +217,18 @@ fun OnboardingPageContent(page: Int) {
         }
 
         val title = when (page) {
-            0 -> "Welcome to Sortue"
-            1 -> "Swap & Solve"
-            2 -> "Find the Harmony"
-            3 -> "Challenge Yourself"
+            0 -> stringResource(R.string.welcome_title)
+            1 -> stringResource(R.string.swap_title)
+            2 -> stringResource(R.string.harmony_title)
+            3 -> stringResource(R.string.challenge_title)
             else -> ""
         }
 
         val description = when (page) {
-            0 -> "Relax your mind with beautiful color gradient puzzles."
-            1 -> "Drag any tile to swap it with another. Put the colors in the right place."
-            2 -> "Watch the colors flow. Solve the puzzle to reveal the perfect gradient."
-            3 -> "Adjust the grid size to match your mood, from casual 4x4 to expert 12x12."
+            0 -> stringResource(R.string.welcome_desc)
+            1 -> stringResource(R.string.swap_desc)
+            2 -> stringResource(R.string.harmony_desc)
+            3 -> stringResource(R.string.challenge_desc)
             else -> ""
         }
 
@@ -428,7 +429,7 @@ fun WelcomeAnimation() {
     ) {
         Box(modifier = Modifier.size(190.dp).background(Color.White, CircleShape))
         Text(
-            text = "Sortue",
+            text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.displayLarge.copy(
                 brush = Brush.linearGradient(colors = listOf(Color(0xFF3F51B5), Color(0xFFE040FB)))
             ),

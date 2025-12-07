@@ -193,14 +193,14 @@ fun GameView(vm: GameViewModel = viewModel()) {
                             modifier = Modifier.background(Color.White)
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Settings") },
+                                text = { Text(stringResource(R.string.settings)) },
                                 onClick = {
                                     showMenu = false
                                     showSettings = true
                                 }
                             )
                             DropdownMenuItem(
-                                text = { Text("About") },
+                                text = { Text(stringResource(R.string.about)) },
                                 onClick = {
                                     showMenu = false
                                     showAbout = true
@@ -625,7 +625,7 @@ fun SolutionOverlay(tiles: List<Tile>, gridDimension: Int) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Target Gradient",
+                text = stringResource(R.string.target_gradient),
                 style = MaterialTheme.typography.headlineSmall,
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
@@ -861,7 +861,7 @@ fun SettingsOverlay(onDismiss: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Text(
-                text = "Settings",
+                text = stringResource(R.string.settings),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -873,7 +873,7 @@ fun SettingsOverlay(onDismiss: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Music",
+                    text = stringResource(R.string.music),
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.Black
                 )
