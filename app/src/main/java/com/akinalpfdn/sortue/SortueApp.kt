@@ -41,7 +41,7 @@ fun SortueApp() {
             exit = fadeOut(),
             modifier = Modifier.zIndex(1f)
         ) {
-            LandingView(onPlay = {
+            LandingView(onDismiss = {
                 showLanding = false
                 rateManager.hasSeenLanding = true
             })
