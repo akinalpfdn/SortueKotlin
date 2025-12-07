@@ -6,8 +6,22 @@ import com.akinalpfdn.sortue.R
 
 class AudioManager(private val context: Context) {
     private var mediaPlayer: MediaPlayer? = null
+    private val prefs = context.getSharedPreferences("sortue_prefs", Context.MODE_PRIVATE)
+
+    var isMusicEnabled: Boolean
+        get() = prefs.getBoolean("music_enabled", true)
+        set(value) {
+            prefs.edit().putBoolean("music_enabled", value).apply()
+            if (value) {
+                playBackgroundMusic()
+            } else {
+                pauseBackgroundMusic()
+            }
+        }
 
     fun playBackgroundMusic() {
+        if (!isMusicEnabled) return
+
         if (mediaPlayer == null) {
             try {
                 mediaPlayer = MediaPlayer.create(context, R.raw.soundtrack)
@@ -29,7 +43,7 @@ class AudioManager(private val context: Context) {
     }
 
     fun resumeBackgroundMusic() {
-        if (mediaPlayer != null && mediaPlayer?.isPlaying == false) {
+        if (isMusicEnabled && mediaPlayer != null && mediaPlayer?.isPlaying == false) {
             mediaPlayer?.start()
         }
     }

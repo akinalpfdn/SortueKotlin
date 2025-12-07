@@ -44,6 +44,10 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.Window
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -100,6 +104,7 @@ import com.akinalpfdn.sortue.viewmodels.GameViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
+import com.akinalpfdn.sortue.utils.AudioManager
 
 @Composable
 fun GameView(vm: GameViewModel = viewModel()) {
@@ -111,6 +116,8 @@ fun GameView(vm: GameViewModel = viewModel()) {
     val currentLevel by vm.currentLevel.collectAsState()
 
     var showAbout by remember { mutableStateOf(false) }
+    var showSettings by remember { mutableStateOf(false) }
+    var showMenu by remember { mutableStateOf(false) }
     var showSolutionPreview by remember { mutableStateOf(false) } // State for solution popup
 
     // Controlled states for sequence
@@ -152,7 +159,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                 .fillMaxSize()
                 .padding(vertical = 50.dp)
                 // Only blur when the overlay is actually visible
-                .blur(if (showWinOverlay || showAbout || showSolutionPreview) 5.dp else 0.dp),
+                .blur(if (showWinOverlay || showAbout || showSettings || showSolutionPreview) 5.dp else 0.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // Header Section
@@ -164,11 +171,42 @@ fun GameView(vm: GameViewModel = viewModel()) {
                         .padding(top = 24.dp, bottom = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(
-                        onClick = { showAbout = true },
-                        modifier = Modifier.size(44.dp)
-                    ) {
-                        StatusIcon(status = status)
+                    Box {
+                        IconButton(
+                            onClick = { 
+                                if (status != GameStatus.PREVIEW) {
+                                    showMenu = true 
+                                } else {
+                                    // For preview (Eye icon), maybe show About or nothing?
+                                    // Current behavior was showing About. Let's keep it for consistency if clicked.
+                                    showAbout = true
+                                }
+                            },
+                            modifier = Modifier.size(44.dp)
+                        ) {
+                            StatusIcon(status = status)
+                        }
+
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false },
+                            modifier = Modifier.background(Color.White)
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Settings") },
+                                onClick = {
+                                    showMenu = false
+                                    showSettings = true
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("About") },
+                                onClick = {
+                                    showMenu = false
+                                    showAbout = true
+                                }
+                            )
+                        }
                     }
 
                     Column(
@@ -442,6 +480,10 @@ fun GameView(vm: GameViewModel = viewModel()) {
 
         if (showAbout) {
             AboutOverlay(onDismiss = { showAbout = false })
+        }
+
+        if (showSettings) {
+             SettingsOverlay(onDismiss = { showSettings = false })
         }
 
         // Solution Preview Overlay
@@ -787,6 +829,66 @@ fun StatusIcon(status: GameStatus) {
                 contentDescription = null,
                 tint = Color.Black
             )
+        }
+    }
+}
+
+
+
+@Composable
+fun SettingsOverlay(onDismiss: () -> Unit) {
+    val context = LocalContext.current
+    val audioManager = remember { AudioManager.getInstance(context) }
+    var isMusicEnabled by remember { mutableStateOf(audioManager.isMusicEnabled) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.5f))
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onDismiss() }
+            .zIndex(200f), // Ensure high z-index
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(32.dp)
+                .shadow(elevation = 16.dp, shape = RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(24.dp))
+                .background(Color.White)
+                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {} // Prevent dismiss
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            Text(
+                text = "Settings",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Music",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.Black
+                )
+                Switch(
+                    checked = isMusicEnabled,
+                    onCheckedChange = {
+                        isMusicEnabled = it
+                        audioManager.isMusicEnabled = it
+                    },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color(0xFF3F51B5),
+                        checkedTrackColor = Color(0xFF3F51B5).copy(alpha = 0.5f)
+                    )
+                )
+            }
         }
     }
 }
