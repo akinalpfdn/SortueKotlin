@@ -73,6 +73,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.layout.height
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -102,7 +103,10 @@ fun GameView(vm: GameViewModel = viewModel()) {
     val currentLevel by vm.currentLevel.collectAsState()
     val minMoves by vm.minMoves.collectAsState()
 
+
     val moveLimit by vm.moveLimit.collectAsState()
+    val bestTime by vm.bestTime.collectAsState()
+    val bestMoves by vm.bestMoves.collectAsState()
     val gameMode by vm.gameMode.collectAsState()
 
     var showAbout by remember { mutableStateOf(false) }
@@ -235,14 +239,42 @@ fun GameView(vm: GameViewModel = viewModel()) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Min Moves Display
-                    Text(
-                        text = stringResource(R.string.min_moves, minMoves),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Gray.copy(alpha = 0.8f),
-                        letterSpacing = 1.sp
-                    )
+                    Column(horizontalAlignment = Alignment.Start) {
+                        // Min Moves Display
+                        Text(
+                            text = stringResource(R.string.min_moves, minMoves),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Gray.copy(alpha = 0.8f),
+                            letterSpacing = 1.sp
+                        )
+
+                        // Best Stats (Casual Mode Only)
+                        if (gameMode == GameMode.CASUAL) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            bestTime?.let {
+                                val min = it / 60
+                                val sec = it % 60
+                                Text(
+                                    text = "BEST TIME: %02d:%02d".format(min, sec),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Gray.copy(alpha = 0.8f),
+                                    letterSpacing = 0.5.sp
+                                )
+                            }
+                            bestMoves?.let {
+                                Text(
+                                    text = "BEST MOVES: $it",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Gray.copy(alpha = 0.8f),
+                                    letterSpacing = 0.5.sp
+                                )
+                            }
+                        }
+                    }
+
 
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         // Solution Preview Button
@@ -283,7 +315,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                     }
                 }
             }
- 
+
 
 
             // Game Grid Container

@@ -51,11 +51,25 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val _gameMode = MutableStateFlow(GameMode.CASUAL)
     val gameMode: StateFlow<GameMode> = _gameMode.asStateFlow()
 
+    // Timer & Stats (Casual Mode)
+    private val _elapsedTime = MutableStateFlow(0L) // in seconds
+    val elapsedTime: StateFlow<Long> = _elapsedTime.asStateFlow()
+
+    private val _bestTime = MutableStateFlow<Long?>(null)
+    val bestTime: StateFlow<Long?> = _bestTime.asStateFlow()
+
+    private val _bestMoves = MutableStateFlow<Int?>(null)
+    val bestMoves: StateFlow<Int?> = _bestMoves.asStateFlow()
+
+    private var timerJob: Job? = null
+
 
     private var shuffleJob: Job? = null
     private var winJob: Job? = null
 
     private var currentCorners: Corners? = null
+
+
 
     private val gson = com.google.gson.Gson()
 
@@ -80,7 +94,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             corners = currentCorners,
             minMoves = _minMoves.value,
             moveLimit = _moveLimit.value, 
-            gameMode = mode
+            gameMode = mode,
+            elapsedTime = _elapsedTime.value
         )
         val json = gson.toJson(state)
         prefs.edit()
@@ -101,8 +116,16 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             _minMoves.value = state.minMoves ?: 0
             _moveLimit.value = state.moveLimit ?: 0
             _gameMode.value = state.gameMode ?: targetMode
+            _elapsedTime.value = state.elapsedTime ?: 0L
 
-            _gameMode.value = state.gameMode ?: targetMode
+            // Load Best Stats for Casual
+            if (_gameMode.value == GameMode.CASUAL) {
+                loadBestStats(state.gridDimension)
+                // Resume timer if playing
+                if (_status.value == GameStatus.PLAYING) {
+                    startTimer()
+                }
+            }
 
             val dim = state.gridDimension
             // Update: Use correct key based on restored GameMode
@@ -130,7 +153,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val corners: Corners?,
         val minMoves: Int? = 0,
         val moveLimit: Int? = 0,
-        val gameMode: GameMode? = GameMode.CASUAL
+        val gameMode: GameMode? = GameMode.CASUAL,
+        val elapsedTime: Long? = 0L
     )
 
     fun startNewGame(dimension: Int? = null, mode: GameMode? = null, preserveColors: Boolean = false) {
@@ -152,12 +176,12 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
         shuffleJob?.cancel()
         winJob?.cancel()
+        stopTimer()
         _status.value = GameStatus.PREVIEW
         _moves.value = 0
+        _elapsedTime.value = 0L
         _minMoves.value = 0
         _moveLimit.value = 0
-        _selectedTileId.value = null
-
         _selectedTileId.value = null
 
         // DYNAMIC GRID SIZE LOGIC for Precision/Pure
@@ -236,10 +260,18 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         // Or we can create a FRESH deterministic Random for shuffle part:
         // val shuffleRandom = Random(levelSeed + 1) 
         // Let's use `levelRandom` to keep one continuous stream of randomness for the level.
-        // We need to pass it to the coroutine.
+        val rnd = Random(levelSeed + 999) // Use a variant of seed for shuffle to ensure it's determined but distinct
+        // 2. Shuffle board (async)
         shuffleJob = viewModelScope.launch {
-            delay(2500)
-            shuffleBoard(Random(levelSeed + 999)) // Use a variant of seed for shuffle to ensure it's determined but distinct
+            delay(2500) // Preview duration
+            shuffleBoard(rnd) // Pass seeded Random
+            
+            // Start timer for Casual Mode
+            if (_gameMode.value == GameMode.CASUAL) {
+                // Ensure best stats are loaded for this grid size
+                loadBestStats(_gridDimension.value)
+                startTimer()
+            }
         }
     }
     enum class HarmonyProfile {
@@ -495,6 +527,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         if (_status.value != GameStatus.PLAYING) return
         if (_gameMode.value == GameMode.PRECISION) return // No hints in Ladder
 
+        // Penalty: +30s Time, +5 Moves
+        if (_gameMode.value == GameMode.CASUAL) {
+            _elapsedTime.value += 30
+            _moves.value += 5
+        }
 
         val currentList = _tiles.value.toMutableList()
 
@@ -521,6 +558,31 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private fun startTimer() {
+        stopTimer()
+        timerJob = viewModelScope.launch {
+            while (true) {
+                delay(1000L)
+                if (_status.value == GameStatus.PLAYING) {
+                    _elapsedTime.value += 1
+                }
+            }
+        }
+    }
+
+    private fun stopTimer() {
+        timerJob?.cancel()
+        timerJob = null
+    }
+
+    private fun loadBestStats(dim: Int) {
+        val bMoves = prefs.getInt("best_moves_$dim", -1)
+        _bestMoves.value = if (bMoves == -1) null else bMoves
+        
+        val bTime = prefs.getLong("best_time_$dim", -1L)
+        _bestTime.value = if (bTime == -1L) null else bTime
+    }
+
     private fun checkWinCondition() {
         val currentList = _tiles.value
         val isWin = currentList.withIndex().all { (index, tile) ->
@@ -530,6 +592,28 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         if (isWin) {
             _status.value = GameStatus.ANIMATING
             // TODO: Success feedback
+            stopTimer()
+
+            if (_gameMode.value == GameMode.CASUAL) {
+                // Check and Save Best Stats
+                val dim = _gridDimension.value
+                val currentMoves = _moves.value
+                val currentTime = _elapsedTime.value
+                
+                // Best Moves
+                val oldBestMoves = _bestMoves.value
+                if (oldBestMoves == null || currentMoves < oldBestMoves) {
+                    _bestMoves.value = currentMoves
+                    prefs.edit().putInt("best_moves_$dim", currentMoves).apply()
+                }
+
+                // Best Time
+                val oldBestTime = _bestTime.value
+                if (oldBestTime == null || currentTime < oldBestTime) {
+                    _bestTime.value = currentTime
+                    prefs.edit().putLong("best_time_$dim", currentTime).apply()
+                }
+            }
 
             // Increment Level
             val dim = _gridDimension.value
