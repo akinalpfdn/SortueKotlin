@@ -243,7 +243,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                 ) {
                     // Min Moves Display
                     Text(
-                        text = "MIN MOVES: $minMoves",
+                        text = stringResource(R.string.min_moves, minMoves),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color.Gray.copy(alpha = 0.8f),
@@ -686,8 +686,8 @@ fun SolutionOverlay(tiles: List<Tile>, gridDimension: Int) {
 fun PremiumWinOverlay(onReplay: () -> Unit, onNext: () -> Unit) {
     val context = LocalContext.current
     // Ensure WinMessages utility exists or define strings here
-    val title = remember { listOf("Divine", "Perfect", "Harmony").random() }
-    val subtitle = remember { listOf("Order restored.", "Beautifully sorted.").random() }
+    val title = remember { WinMessages.getTitles(context).random() }
+    val subtitle = remember { WinMessages.getSubtitles(context).random() }
 
     Box(
         modifier = Modifier

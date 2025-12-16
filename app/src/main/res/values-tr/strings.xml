@@ -52,6 +52,7 @@
     <string name="win_title_balanced">Dengeli</string>
     <string name="win_title_aligned">Hizalı</string>
 
+    <string name="min_moves">MIN HAMLE: %1$d</string>
     <!-- Win Subtitles -->
     <string name="win_subtitle_spectrum">Spektrum tamamlandı.</string>
     <string name="win_subtitle_balance">Denge sağlandı.</string>

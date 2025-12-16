@@ -5,6 +5,7 @@
     <string name="level_display">Level %1$d • %2$dx%3$d • %4$d Moves</string>
     <string name="grid_size">Grid Size</string>
     <string name="next_level">Next Level</string>
+    <string name="min_moves">MIN MOVES: %1$d</string>
 
     <!-- Rate Overlay -->
     <string name="enjoying_sortue">Enjoying Sortue?</string>
