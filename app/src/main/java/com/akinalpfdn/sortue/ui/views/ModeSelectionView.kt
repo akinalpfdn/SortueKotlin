@@ -2,6 +2,9 @@ package com.akinalpfdn.sortue.ui.views
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -116,11 +119,22 @@ fun ModeSelectionView(
                 .padding(vertical = 48.dp)
         ) {
             // App Title
+           val rainbowColors = listOf(
+    Color(0xFFFF8080), // Saturated Pastel Red (Salmon-ish)
+    Color(0xFFFFB347), // Saturated Pastel Orange
+    Color(0xFFFFE066), // Saturated Pastel Yellow (Darker to be visible)
+    Color(0xFF77DD77), // Saturated Pastel Green
+    Color(0xFF779ECB), // Saturated Pastel Blue
+    Color(0xFF966FD6), // Saturated Pastel Indigo
+    Color(0xFFC3B1E1)  // Saturated Pastel Violet
+)
+            
             Text(
                 text = stringResource(R.string.app_name).uppercase(),
-                style = MaterialTheme.typography.displayMedium,
+                style = MaterialTheme.typography.displayMedium.copy(
+                    brush = Brush.horizontalGradient(colors = rainbowColors)
+                ),
                 fontWeight = FontWeight.Black,
-                color = Color.Black.copy(alpha = 0.8f),
                 letterSpacing = 4.sp,
                 modifier = Modifier.padding(top = 20.dp)
             )
