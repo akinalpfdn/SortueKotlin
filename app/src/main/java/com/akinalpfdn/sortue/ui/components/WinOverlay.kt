@@ -103,8 +103,8 @@ fun WinOverlay(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.headlineMedium.copy(
-                        fontFamily = FontFamily.Serif,
-                        fontWeight = FontWeight.Medium
+                        // Removed FontFamily.Serif to use global Theme Font (Fredoka)
+                        fontWeight = FontWeight.Bold // Ensuring it's bold as requested
                     ),
                     color = Color.Black
                 )

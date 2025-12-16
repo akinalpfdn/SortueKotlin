@@ -17,110 +17,111 @@ val FredokaFontFamily = FontFamily(
 )
 
 // Set of Material typography styles to start with
+// Set of Material typography styles to start with
 val Typography = Typography(
     displayLarge = TextStyle(
         fontFamily = FredokaFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 57.sp,
-        lineHeight = 64.sp,
+        fontWeight = FontWeight.Bold, // Increased from Normal
+        fontSize = 64.sp, // Increased from 57
+        lineHeight = 70.sp,
         letterSpacing = (-0.25).sp
     ),
     displayMedium = TextStyle(
         fontFamily = FredokaFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 45.sp,
-        lineHeight = 52.sp,
+        fontWeight = FontWeight.Bold, // Increased from Normal
+        fontSize = 48.sp, // Increased from 45
+        lineHeight = 56.sp,
         letterSpacing = 0.sp
     ),
     displaySmall = TextStyle(
         fontFamily = FredokaFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 36.sp,
-        lineHeight = 44.sp,
+        fontWeight = FontWeight.Bold, // Increased from Normal
+        fontSize = 40.sp, // Increased from 36
+        lineHeight = 48.sp,
         letterSpacing = 0.sp
     ),
     headlineLarge = TextStyle(
         fontFamily = FredokaFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 32.sp,
-        lineHeight = 40.sp,
+        fontWeight = FontWeight.Bold, // Increased from Normal
+        fontSize = 36.sp, // Increased from 32
+        lineHeight = 44.sp,
         letterSpacing = 0.sp
     ),
     headlineMedium = TextStyle(
         fontFamily = FredokaFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 28.sp,
-        lineHeight = 36.sp,
+        fontWeight = FontWeight.SemiBold, // Increased from Normal
+        fontSize = 32.sp, // Increased from 28
+        lineHeight = 40.sp,
         letterSpacing = 0.sp
     ),
     headlineSmall = TextStyle(
         fontFamily = FredokaFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 24.sp,
-        lineHeight = 32.sp,
+        fontWeight = FontWeight.SemiBold, // Increased from Normal
+        fontSize = 28.sp, // Increased from 24
+        lineHeight = 36.sp,
         letterSpacing = 0.sp
     ),
     titleLarge = TextStyle(
         fontFamily = FredokaFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
+        fontWeight = FontWeight.SemiBold, // Increased from Normal
+        fontSize = 26.sp, // Increased from 22
+        lineHeight = 32.sp,
         letterSpacing = 0.sp
     ),
     titleMedium = TextStyle(
         fontFamily = FredokaFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
+        fontWeight = FontWeight.SemiBold, // Increased from Medium
+        fontSize = 20.sp, // Increased from 16
+        lineHeight = 28.sp,
         letterSpacing = 0.15.sp
     ),
     titleSmall = TextStyle(
         fontFamily = FredokaFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
+        fontWeight = FontWeight.Bold, // Increased from Medium
+        fontSize = 18.sp, // Increased from 14
+        lineHeight = 24.sp,
         letterSpacing = 0.1.sp
     ),
     bodyLarge = TextStyle(
         fontFamily = FredokaFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
+        fontWeight = FontWeight.Medium, // Increased from Normal
+        fontSize = 18.sp, // Increased from 16
+        lineHeight = 26.sp,
         letterSpacing = 0.5.sp
     ),
     bodyMedium = TextStyle(
         fontFamily = FredokaFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
+        fontWeight = FontWeight.Medium, // Increased from Normal
+        fontSize = 16.sp, // Increased from 14
+        lineHeight = 22.sp,
         letterSpacing = 0.25.sp
     ),
     bodySmall = TextStyle(
         fontFamily = FredokaFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
-        lineHeight = 16.sp,
+        fontWeight = FontWeight.Medium, // Increased from Normal
+        fontSize = 14.sp, // Increased from 12
+        lineHeight = 18.sp,
         letterSpacing = 0.4.sp
     ),
     labelLarge = TextStyle(
         fontFamily = FredokaFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
+        fontWeight = FontWeight.SemiBold, // Increased from Medium
+        fontSize = 16.sp, // Increased from 14
+        lineHeight = 22.sp,
         letterSpacing = 0.1.sp
     ),
     labelMedium = TextStyle(
         fontFamily = FredokaFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 12.sp,
-        lineHeight = 16.sp,
+        fontWeight = FontWeight.SemiBold, // Increased from Medium
+        fontSize = 14.sp, // Increased from 12
+        lineHeight = 18.sp,
         letterSpacing = 0.5.sp
     ),
     labelSmall = TextStyle(
         fontFamily = FredokaFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        lineHeight = 16.sp,
+        fontWeight = FontWeight.Bold, // Increased from Medium
+        fontSize = 13.sp, // Increased from 11
+        lineHeight = 18.sp,
         letterSpacing = 0.5.sp
     )
 )

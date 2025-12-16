@@ -298,6 +298,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
             }
  
 
+
             // Game Grid Container
             Box(
                 modifier = Modifier
@@ -417,8 +418,80 @@ fun GameView(vm: GameViewModel = viewModel()) {
             }
 
             Spacer(modifier = Modifier.weight(1f))
+            // Slider (Casual Mode Only)
+            if (gameMode == GameMode.CASUAL) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 32.dp, vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.grid_size),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.Black.copy(alpha = 0.6f)
+                        )
 
+                        Text(
+                            text = "${gridDimension}x${gridDimension}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF3F51B5)
+                        )
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Window,
+                            contentDescription = null,
+                            tint = Color.Gray.copy(alpha = 0.3f),
+                            modifier = Modifier.size(20.dp)
+                        )
+
+                        Slider(
+                            value = gridDimension.toFloat(),
+                            onValueChange = { newValue ->
+                                val newInt = newValue.toInt()
+                                if (newInt != gridDimension) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    vm.startNewGame(dimension = newInt, preserveColors = true)
+                                }
+                            },
+                            valueRange = 4f..12f,
+                            steps = 7,
+                            modifier = Modifier.weight(1f),
+                            colors = SliderDefaults.colors(
+                                thumbColor = Color(0xFF3F51B5),
+                                activeTrackColor = Color(0xFF3F51B5),
+                                inactiveTrackColor = Color(0xFF3F51B5).copy(alpha = 0.15f),
+                                activeTickColor = Color.Transparent,
+                                inactiveTickColor = Color.Transparent
+                            )
+                        )
+
+                        Icon(
+                            imageVector = Icons.Filled.GridOn,
+                            contentDescription = null,
+                            tint = Color.Gray.copy(alpha = 0.3f),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
             }
+
+
+        }
         }
 
         // Overlays
@@ -444,24 +517,16 @@ fun GameView(vm: GameViewModel = viewModel()) {
 
         if (showSettings) {
              SettingsOverlay(
-                 onDismiss = { showSettings = false },
-                 gameMode = gameMode,
-                 currentGridSize = gridDimension,
-                 onGridSizeChange = { newSize ->
-                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                     vm.startNewGame(dimension = newSize, preserveColors = true)
-                 }
+                 onDismiss = { showSettings = false }
              )
         }
 
-        if (status == GameStatus.MENU) {
         if (status == GameStatus.MENU) {
             ModeSelectionView(
                 onStartGame = { mode, size ->
                     vm.playOrResumeGame(mode, size)
                 }
             )
-        }
         }
 
         if (status == GameStatus.GAME_OVER) {
