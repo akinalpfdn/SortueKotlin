@@ -16,6 +16,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.foundation.shape.GenericShape
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -183,52 +192,68 @@ fun ModeSelectionView(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Play Button
-            Button(
-                onClick = {
-                    // Start game with selected mode.
-                    // Grid size defaults to 4 for now in logic, Casual can change it in settings.
-                    // But wait, if I had a saved game with size 6, playOrResumeGame should handle it?
-                    // Implementation note: `playOrResumeGame` takes size argument.
-                    // If resuming, it checks if size matches.
-                    // If I pass 4 here, but I have a saved game of size 6, persistence logic says:
-                    // if (hasActive && isSameMode && isSameSize) -> resume.
-                    // So if I pass 4, and saved is 6, it won't resume? It will overwrite with new 4x4 game?
-                    // That's BAD.
-                    // FIX: `playOrResumeGame` should probably take `Int?` for size or I need to know the saved size.
-                    // OR `ModeSelectionView` doesn't pick size anymore.
-                    // If `GameViewModel` knows the saved size, I should just say "Play this Mode".
-                    // I'll update `playOrResumeGame` to use `savedSize` if available?
-                    // Actually, if I just want to "Resume or New Default", I should pass the size I WANT to start new with.
-                    // What if I want to resume my 6x6 game? 
-                    // If I pass 4, it will overwrite.
-                    // User requirement: "resume game" is gone. Play button handles it.
-                    // "we will hold the three modes state all the time"
-                    // So if I have a Casual 6x6 state, and I click Play Casual, it MUST resume 6x6.
-                    // So `playOrResumeGame` logic must be updated to ignore size mismatch if resuming?
-                    // Yes. Detailed fix in next step.
-                    // For now, I pass 4 as default "New Game" size if no save exists.
-                    onStartGame(currentMode, 4) 
-                },
-                modifier = Modifier
-                    .size(80.dp)
-                    .shadow(
-                        elevation = 20.dp, 
-                        shape = CircleShape, 
-                        spotColor = Color(0xFF3F51B5).copy(alpha = 0.5f)
-                    ),
-                shape = CircleShape,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3F51B5))
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.PlayArrow,
-                    contentDescription = "Play",
-                    modifier = Modifier.size(40.dp),
-                    tint = Color.White
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(20.dp))
+            // Play Button (Mosaic Triangle)
+            MosaicPlayButton(
+                onClick = { onStartGame(currentMode, 4) },
+                colors = rainbowColors
+            )
+
+            Spacer(modifier = Modifier.padding(bottom = 48.dp))
         }
     }
+}
+
+@Composable
+fun MosaicPlayButton(
+    onClick: () -> Unit,
+    colors: List<Color>,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .width(80.dp)
+            .height(100.dp)
+            // Use a custom shape that looks like a Play button (Triangle)
+            .shadow(16.dp, TriangleShape, spotColor = colors.first().copy(alpha = 0.5f))
+            .clip(TriangleShape)
+            .background(Color.White) // Background behind tiles
+            .clickable(onClick = onClick)
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val rows = 5 // Reduced from 8
+            val cols = 5 // Adjusted to match aspect ratio approximately
+            
+            val tileW = size.width / cols
+            val tileH = size.height / rows
+            
+            for (row in 0 until rows) {
+                for (col in 0 until cols) {
+                    val color = colors.random()
+                    
+                    // Draw rect for each "tile"
+                    drawRect(
+                        color = color,
+                        topLeft = Offset(col * tileW, row * tileH),
+                        size = Size(tileW, tileH)
+                    )
+                    
+                    // Optional: Inner border effect (white stroke to separate tiles)
+                     drawRect(
+                        color = Color.White,
+                        topLeft = Offset(col * tileW, row * tileH),
+                        size = Size(tileW, tileH),
+                        style = Stroke(width = 2f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+// Shape Definition
+private val TriangleShape = GenericShape { size, _ ->
+    moveTo(0f, 0f)
+    lineTo(size.width, size.height / 2f)
+    lineTo(0f, size.height)
+    close()
 }
