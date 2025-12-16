@@ -1,28 +1,20 @@
 package com.akinalpfdn.sortue.ui.views
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,22 +25,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.Window
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -68,20 +54,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -106,13 +87,10 @@ import com.akinalpfdn.sortue.ui.components.SettingsOverlay
 import com.akinalpfdn.sortue.ui.components.SolutionOverlay
 import com.akinalpfdn.sortue.ui.components.TileView
 import com.akinalpfdn.sortue.ui.components.WinOverlay
-import com.akinalpfdn.sortue.ui.views.ModeSelectionView
-import com.akinalpfdn.sortue.utils.WinMessages
 import com.akinalpfdn.sortue.viewmodels.GameViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
-import com.akinalpfdn.sortue.utils.AudioManager
 
 @Composable
 fun GameView(vm: GameViewModel = viewModel()) {
@@ -235,7 +213,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = if (gameMode == GameMode.LADDER) {
+                            text = if (gameMode == GameMode.PRECISION) {
                                 "${stringResource(R.string.level_display, currentLevel, gridDimension, gridDimension, moves)} / 200"
                             } else {
                                 stringResource(R.string.level_display, currentLevel, gridDimension, gridDimension, moves)
@@ -265,7 +243,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
 
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         // Solution Preview Button
-                        if (gameMode != GameMode.CHALLENGE) {
+                        if (gameMode != GameMode.PURE) {
                             CircleButton(
                                 icon = Icons.Filled.Visibility, // Eye icon
                                 onClick = {
@@ -321,7 +299,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                     itemsIndexed(tiles, key = { _, it -> it.id }) { index, tile ->
                         Box(modifier = Modifier.animateItem()) {
                             val isDragging = draggingTile?.id == tile.id
-                            val isLockingEnabled = gameMode != GameMode.CHALLENGE 
+                            val isLockingEnabled = gameMode != GameMode.PURE
                             TileView(
                                 tile = tile,
                                 isSelected = selectedTileId == tile.id || pressedTileId == tile.id,
@@ -536,7 +514,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                     val nextDim = gridDimension // Keep logic same as swift version if needed
                     vm.startNewGame(dimension = nextDim)
                 },
-                showReplay = gameMode != GameMode.LADDER
+                showReplay = gameMode != GameMode.PRECISION
             )
         }
 
@@ -591,7 +569,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                     index = 0, // irrelevant for visual only
                     gridWidth = gridDimension,
                     modifier = Modifier.fillMaxSize(), // Fill the box
-                    showCheck = gameMode != GameMode.CHALLENGE
+                    showCheck = gameMode != GameMode.PURE
                 )
             }
         }

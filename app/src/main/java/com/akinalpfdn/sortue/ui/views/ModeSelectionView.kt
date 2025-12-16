@@ -1,7 +1,6 @@
 package com.akinalpfdn.sortue.ui.views
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -154,9 +153,9 @@ fun ModeSelectionView(
             // Description of current mode
             val currentMode = modes.getOrElse(selectedModeIndex) { GameMode.CASUAL }
             val desc = when(currentMode) {
-                GameMode.CASUAL -> "Relax. No limits. Unlimited hints."
-                GameMode.LADDER -> "Climb the ladder. 200 moves limit per level."
-                GameMode.CHALLENGE -> "Hardcore. Coming soon."
+                GameMode.CASUAL -> stringResource(R.string.casual_Text)
+                GameMode.PRECISION -> stringResource(R.string.ladder_Text)
+                GameMode.PURE -> stringResource(R.string.challenge_Text)
             }
             Text(
                 text = desc,

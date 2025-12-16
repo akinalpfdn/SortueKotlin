@@ -103,8 +103,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             val restoredMode = _gameMode.value
             val levelKey = when (restoredMode) {
                 GameMode.CASUAL -> "level_count_$dim"
-                GameMode.LADDER -> "level_count_LADDER"
-                GameMode.CHALLENGE -> "level_count_CHALLENGE"
+                GameMode.PRECISION -> "level_count_LADDER"
+                GameMode.PURE -> "level_count_CHALLENGE"
             }
             val savedLevel = prefs.getInt(levelKey, 0)
             _currentLevel.value = savedLevel + 1
@@ -136,8 +136,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val currentMode = _gameMode.value
         val levelKey = when (currentMode) {
             GameMode.CASUAL -> "level_count_$dim" // Preserve existing behavior for Casual
-            GameMode.LADDER -> "level_count_LADDER"
-            GameMode.CHALLENGE -> "level_count_CHALLENGE"
+            GameMode.PRECISION -> "level_count_LADDER"
+            GameMode.PURE -> "level_count_CHALLENGE"
         }
 
         val savedLevel = prefs.getInt(levelKey, 0)
@@ -431,7 +431,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             _moves.value += 1
             saveGameState()
 
-            if (_gameMode.value == GameMode.LADDER) {
+            if (_gameMode.value == GameMode.PRECISION) {
                 if (_moves.value >= 200) {
                      // Check win first? Or strict limit? 
                      // Usually check win first.
@@ -450,7 +450,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     fun useHint() {
         if (_status.value != GameStatus.PLAYING) return
-        if (_gameMode.value == GameMode.LADDER) return // No hints in Ladder
+        if (_gameMode.value == GameMode.PRECISION) return // No hints in Ladder
 
 
         val currentList = _tiles.value.toMutableList()
@@ -494,8 +494,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             
             val key = when (currentMode) {
                 GameMode.CASUAL -> "level_count_$dim"
-                GameMode.LADDER -> "level_count_LADDER"
-                GameMode.CHALLENGE -> "level_count_CHALLENGE"
+                GameMode.PRECISION -> "level_count_LADDER"
+                GameMode.PURE -> "level_count_CHALLENGE"
             }
             
             val currentWins = prefs.getInt(key, 0)

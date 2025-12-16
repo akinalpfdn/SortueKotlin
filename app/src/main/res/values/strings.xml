@@ -113,4 +113,7 @@
     <string name="swap_desc">Drag any tile to swap it with another. Put the colors in the right place.</string>
     <string name="harmony_desc">Watch the colors flow. Solve the puzzle to reveal the perfect gradient.</string>
     <string name="challenge_desc">Adjust the grid size to match your mood, from casual 4x4 to expert 12x12.</string>
+    <string name="casual_Text">Relax. No limits. Unlimited hints.</string>
+    <string name="ladder_Text">Finish the level with given move count</string>
+    <string name="challenge_Text">zero help, challenge yourself</string>
 </resources>

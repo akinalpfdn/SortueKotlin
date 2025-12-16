@@ -113,4 +113,7 @@
     <string name="swap_desc">Yer değiştirmek için herhangi bir kareyi sürükle. Renkleri doğru yere koy.</string>
     <string name="harmony_desc">Renklerin akışını izle. Mükemmel gradyanı ortaya çıkarmak için bulmacayı çöz.</string>
     <string name="challenge_desc">Izgara boyutunu ruh haline göre ayarla, 4x4\'ten 12x12 uzman seviyesine kadar.</string>
+    <string name="casual_Text">Rahatça oyna, sınırsız ipucu ve sıfır limit</string>
+    <string name="ladder_Text">Seviyeyi verilen hamle sayısında tamamla</string>
+    <string name="challenge_Text">yardım yok, kendini zorla</string>
 </resources>
