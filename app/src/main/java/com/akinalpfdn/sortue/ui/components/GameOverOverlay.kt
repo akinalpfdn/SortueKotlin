@@ -69,14 +69,14 @@ fun GameOverOverlay(onRetry: () -> Unit, onMenu: () -> Unit) {
             }
 
             Text(
-                text = "GAME OVER", // TODO: I18n
+                text = stringResource(R.string.game_over_title),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
 
             Text(
-                text = "You ran out of moves!", // TODO: I18n
+                text = stringResource(R.string.game_over_desc),
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.Gray,
                 textAlign = TextAlign.Center
@@ -97,7 +97,7 @@ fun GameOverOverlay(onRetry: () -> Unit, onMenu: () -> Unit) {
                  Row(verticalAlignment = Alignment.CenterVertically) {
                      Icon(Icons.Filled.Refresh, null, tint = Color.White) 
                      Spacer(modifier = Modifier.width(8.dp))
-                     Text("TRY AGAIN", color = Color.White, fontWeight = FontWeight.Bold) // TODO: I18n
+                     Text(stringResource(R.string.try_again), color = Color.White, fontWeight = FontWeight.Bold)
                  }
             }
             
@@ -110,7 +110,7 @@ fun GameOverOverlay(onRetry: () -> Unit, onMenu: () -> Unit) {
                     .clickable { onMenu() },
                 contentAlignment = Alignment.Center
             ) {
-                 Text("BACK TO MENU", color = Color.Gray) // TODO: I18n
+                 Text(stringResource(R.string.back_to_menu), color = Color.Gray)
             }
         }
     }

@@ -116,4 +116,13 @@
     <string name="casual_Text">Relax. No limits. Unlimited hints.</string>
     <string name="ladder_Text">Finish the level with given move count</string>
     <string name="challenge_Text">zero help, challenge yourself</string>
+
+    <!-- Precision Mode Display -->
+    <string name="level_display_precision">Level %1$d (%2$dx%3$d) - %4$d LEFT</string>
+
+    <!-- Game Over Screen -->
+    <string name="game_over_title">GAME OVER</string>
+    <string name="game_over_desc">You ran out of moves!</string>
+    <string name="try_again">TRY AGAIN</string>
+    <string name="back_to_menu">BACK TO MENU</string>
 </resources>

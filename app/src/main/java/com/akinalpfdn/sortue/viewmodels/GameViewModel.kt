@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Collections
 import kotlin.random.Random
+import kotlin.math.min
 
 class GameViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -43,6 +44,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _minMoves = MutableStateFlow(0)
     val minMoves: StateFlow<Int> = _minMoves.asStateFlow()
+
+    private val _moveLimit = MutableStateFlow(0)
+    val moveLimit: StateFlow<Int> = _moveLimit.asStateFlow()
 
     private val _gameMode = MutableStateFlow(GameMode.CASUAL)
     val gameMode: StateFlow<GameMode> = _gameMode.asStateFlow()
@@ -75,6 +79,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             moves = _moves.value,
             corners = currentCorners,
             minMoves = _minMoves.value,
+            moveLimit = _moveLimit.value, 
             gameMode = mode
         )
         val json = gson.toJson(state)
@@ -94,6 +99,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             _moves.value = state.moves
             currentCorners = state.corners
             _minMoves.value = state.minMoves ?: 0
+            _moveLimit.value = state.moveLimit ?: 0
             _gameMode.value = state.gameMode ?: targetMode
 
             _gameMode.value = state.gameMode ?: targetMode
@@ -123,6 +129,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val moves: Int,
         val corners: Corners?,
         val minMoves: Int? = 0,
+        val moveLimit: Int? = 0,
         val gameMode: GameMode? = GameMode.CASUAL
     )
 
@@ -148,10 +155,31 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         _status.value = GameStatus.PREVIEW
         _moves.value = 0
         _minMoves.value = 0
+        _moveLimit.value = 0
         _selectedTileId.value = null
 
-        val w = dim
-        val h = dim
+        _selectedTileId.value = null
+
+        // DYNAMIC GRID SIZE LOGIC for Precision/Pure
+        if (currentMode == GameMode.PRECISION || currentMode == GameMode.PURE) {
+            val lvl = _currentLevel.value
+            val targetDim = if (lvl <= 15) {
+                4
+            } else {
+                // Starts at 5 for lvl 16. Increases every 7 levels.
+                // Lvl 16..22 -> 5
+                // Lvl 23..29 -> 6
+                min(12, 5 + (lvl - 16) / 7)
+            }
+            if (_gridDimension.value != targetDim) {
+                _gridDimension.value = targetDim
+            }
+        }
+
+        // Refresh dim/w/h variables effectively
+        val generatedDim = _gridDimension.value
+        val w = generatedDim
+        val h = generatedDim
 
         // DETERMINISTIC SEED GENERATION
         // Seed = (Mode_Ordinal + 1) * 10000 + Level. 
@@ -390,7 +418,21 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
         val shuffled = finalGrid.filterNotNull()
         _tiles.value = shuffled
-        _minMoves.value = calculateMinMoves(shuffled)
+        val minM = calculateMinMoves(shuffled)
+        _minMoves.value = minM
+        
+        // Calculate Move Limit for Precision Mode
+        if (_gameMode.value == GameMode.PRECISION) {
+            val dim = _gridDimension.value
+            _moveLimit.value = when(dim) {
+                in 4..7 -> (1.6 * minM).toInt() + 4
+                in 8..11 -> (2.2 * minM).toInt() + 8
+                else -> (2.5 * minM).toInt() + 12
+            }
+        } else {
+            _moveLimit.value = 0 // Unlimited or irrelevant
+        }
+
         _status.value = GameStatus.PLAYING
         // For Ladder mode, moves reset to 0 in startNewGame, but if we are restarting level?
         // startNewGame calls shuffleBoard 2.5s later. Moves are 0ed in startNewGame.
@@ -432,7 +474,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             saveGameState()
 
             if (_gameMode.value == GameMode.PRECISION) {
-                if (_moves.value >= 200) {
+                val limit = _moveLimit.value
+                if (_moves.value >= limit) {
                      // Check win first? Or strict limit? 
                      // Usually check win first.
                      checkWinCondition() // Updates status if won

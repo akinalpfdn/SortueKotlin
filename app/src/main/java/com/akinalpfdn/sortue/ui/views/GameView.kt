@@ -101,6 +101,8 @@ fun GameView(vm: GameViewModel = viewModel()) {
     val selectedTileId by vm.selectedTileId.collectAsState()
     val currentLevel by vm.currentLevel.collectAsState()
     val minMoves by vm.minMoves.collectAsState()
+
+    val moveLimit by vm.moveLimit.collectAsState()
     val gameMode by vm.gameMode.collectAsState()
 
     var showAbout by remember { mutableStateOf(false) }
@@ -214,7 +216,8 @@ fun GameView(vm: GameViewModel = viewModel()) {
                         )
                         Text(
                             text = if (gameMode == GameMode.PRECISION) {
-                                "${stringResource(R.string.level_display, currentLevel, gridDimension, gridDimension, moves)} / 200"
+                                val remaining = (moveLimit - moves).coerceAtLeast(0)
+                                stringResource(R.string.level_display_precision, currentLevel, gridDimension, gridDimension, remaining)
                             } else {
                                 stringResource(R.string.level_display, currentLevel, gridDimension, gridDimension, moves)
                             }.uppercase(),
