@@ -24,7 +24,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalDensity
+// import androidx.compose.ui.platform.LocalHapticFeedback // Removed
+import androidx.compose.ui.platform.LocalView
+import android.view.HapticFeedbackConstants
+import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -44,7 +53,7 @@ fun <T> WheelPicker(
 ) {
     val density = LocalDensity.current
     val itemHeightPx = with(density) { itemHeight.toPx() }
-    val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
 
     // Buffer Strategy:
     // We don't use Int.MAX_VALUE. We use a "reasonable" buffer (e.g., 300) to allow for
@@ -72,10 +81,28 @@ fun <T> WheelPicker(
     }
 
     // Report selection updates
+    // Report selection updates
     LaunchedEffect(centeredIndex) {
         val actualIndex = centeredIndex % items.size
         onSelectionChanged(actualIndex)
-        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        
+        // Direct Vibration Logic
+        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            vibratorManager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
+        
+        if (vibrator.hasVibrator()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(20) // 20ms fallback for old devices
+            }
+        }
     }
 
     // THE RESET LOGIC:
