@@ -68,5 +68,6 @@ dependencies {
     // Required for Modifier.animateItemPlacement()
     // Ensure you are using a recent version of Foundation (1.7.0+ recommended)
     implementation("androidx.compose.foundation:foundation:1.7.5")
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.7.5")
     implementation("com.google.code.gson:gson:2.10.1")
 }
