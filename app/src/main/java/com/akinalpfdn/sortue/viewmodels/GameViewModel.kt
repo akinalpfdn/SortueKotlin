@@ -96,8 +96,17 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             _minMoves.value = state.minMoves ?: 0
             _gameMode.value = state.gameMode ?: targetMode
 
+            _gameMode.value = state.gameMode ?: targetMode
+
             val dim = state.gridDimension
-            val savedLevel = prefs.getInt("level_count_$dim", 0)
+            // Update: Use correct key based on restored GameMode
+            val restoredMode = _gameMode.value
+            val levelKey = when (restoredMode) {
+                GameMode.CASUAL -> "level_count_$dim"
+                GameMode.LADDER -> "level_count_LADDER"
+                GameMode.CHALLENGE -> "level_count_CHALLENGE"
+            }
+            val savedLevel = prefs.getInt(levelKey, 0)
             _currentLevel.value = savedLevel + 1
 
             true
@@ -123,8 +132,15 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
         val dim = _gridDimension.value
 
-        // Update level for the current dimension
-        val savedLevel = prefs.getInt("level_count_$dim", 0)
+        // Determine Level Key based on Mode
+        val currentMode = _gameMode.value
+        val levelKey = when (currentMode) {
+            GameMode.CASUAL -> "level_count_$dim" // Preserve existing behavior for Casual
+            GameMode.LADDER -> "level_count_LADDER"
+            GameMode.CHALLENGE -> "level_count_CHALLENGE"
+        }
+
+        val savedLevel = prefs.getInt(levelKey, 0)
         _currentLevel.value = savedLevel + 1
 
         shuffleJob?.cancel()
@@ -474,7 +490,14 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
             // Increment Level
             val dim = _gridDimension.value
-            val key = "level_count_$dim"
+            val currentMode = _gameMode.value
+            
+            val key = when (currentMode) {
+                GameMode.CASUAL -> "level_count_$dim"
+                GameMode.LADDER -> "level_count_LADDER"
+                GameMode.CHALLENGE -> "level_count_CHALLENGE"
+            }
+            
             val currentWins = prefs.getInt(key, 0)
             prefs.edit().putInt(key, currentWins + 1).apply()
 
