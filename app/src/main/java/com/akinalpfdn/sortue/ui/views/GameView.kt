@@ -508,6 +508,23 @@ fun GameView(vm: GameViewModel = viewModel()) {
 
         // Overlays
 
+
+
+        if (status == GameStatus.MENU) {
+            ModeSelectionView(
+                onStartGame = { mode, size ->
+                    vm.playOrResumeGame(mode, size)
+                },
+                onSettingsClick = {
+                    showSettings = true
+                },
+                onAboutClick = {
+                    showAbout = true
+                }
+            )
+        }
+
+        // Overlays (Moved to bottom for correct Z-index)
         if (showConfetti) {
             ConfettiSystem()
         }
@@ -531,20 +548,6 @@ fun GameView(vm: GameViewModel = viewModel()) {
              SettingsOverlay(
                  onDismiss = { showSettings = false }
              )
-        }
-
-        if (status == GameStatus.MENU) {
-            ModeSelectionView(
-                onStartGame = { mode, size ->
-                    vm.playOrResumeGame(mode, size)
-                },
-                onSettingsClick = {
-                    showSettings = true
-                },
-                onAboutClick = {
-                    showAbout = true
-                }
-            )
         }
 
         if (status == GameStatus.GAME_OVER) {
