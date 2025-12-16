@@ -101,6 +101,7 @@ import com.akinalpfdn.sortue.ui.components.AboutOverlay
 import com.akinalpfdn.sortue.ui.components.AmbientBackground
 import com.akinalpfdn.sortue.ui.components.SettingsOverlay
 import com.akinalpfdn.sortue.ui.components.SolutionOverlay
+import com.akinalpfdn.sortue.ui.components.TileView
 import com.akinalpfdn.sortue.ui.components.WinOverlay
 import com.akinalpfdn.sortue.utils.WinMessages
 import com.akinalpfdn.sortue.viewmodels.GameViewModel
@@ -539,87 +540,8 @@ fun GameView(vm: GameViewModel = viewModel()) {
     }
 }
 
-@Composable
-fun TileView(
-    tile: Tile,
-    isSelected: Boolean,
-    isWon: Boolean,
-    status: GameStatus,
-    index: Int,
-    gridWidth: Int,
-    modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null // Made optional and nullable as we might use external gesture
-) {
-    val x = index % gridWidth
-    val y = index / gridWidth
-    val delay = (x + y) * 50
+// TileView moved to com.akinalpfdn.sortue.ui.components.TileView
 
-    val scale = remember { Animatable(1f) }
-    val offsetY = remember { Animatable(0f) }
-
-    // Check if tile is in correct position (Logic for "Locking")
-    // Only check if playing and not a fixed corner
-    val isCorrectlyPlaced = (status == GameStatus.PLAYING) && (tile.correctId == index) && !tile.isFixed
-
-    LaunchedEffect(isWon) {
-        if (isWon) {
-            // Tiles start moving immediately (with their staggered delay)
-            delay(delay.toLong())
-            scale.animateTo(1.1f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow))
-            offsetY.animateTo(-10f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow))
-        } else {
-            // Reset state if game restarts
-            scale.animateTo(if (isSelected) 0.9f else (if (isCorrectlyPlaced) 0.95f else 1.0f))
-            offsetY.animateTo(0f)
-        }
-    }
-
-    LaunchedEffect(isSelected, isCorrectlyPlaced) {
-        if (!isWon) {
-            // Scale down slightly if locked to show it's "set"
-            val targetScale = if (isSelected) 0.9f else (if (isCorrectlyPlaced) 0.95f else 1.0f)
-            scale.animateTo(targetScale)
-        }
-    }
-
-    Box(
-        modifier = Modifier
-            .aspectRatio(1f)
-            .offset { IntOffset(0, offsetY.value.toInt()) }
-            .scale(scale.value)
-            .shadow(if (isSelected) 10.dp else 0.dp, RoundedCornerShape(8.dp))
-            .clip(RoundedCornerShape(8.dp))
-            .background(tile.rgb.color)
-            .border(
-                width = if (isSelected) 4.dp else 0.dp,
-                color = Color.White,
-                shape = RoundedCornerShape(8.dp)
-            )
-            // Add interaction source to disable ripple if needed, or rely on clickable enabled state
-            .then(modifier)
-            .then(if (onClick != null) Modifier.clickable(enabled = !tile.isFixed && !isCorrectlyPlaced) { onClick() } else Modifier)
-    ) {
-        // Overlay Icons
-        if (tile.isFixed) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(6.dp)
-                    .background(Color.Black.copy(alpha = 0.3f), CircleShape)
-            )
-        } else if (isCorrectlyPlaced) {
-            // Locked Visual (Checkmark)
-            Icon(
-                imageVector = Icons.Filled.Check,
-                contentDescription = null,
-                tint = Color.White.copy(alpha = 0.5f),
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .size(16.dp)
-            )
-        }
-    }
-}
 
 // New Solution Overlay Component moved to SolutionOverlay.kt
 
