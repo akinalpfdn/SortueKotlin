@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -34,7 +36,12 @@ import com.akinalpfdn.sortue.R
 import com.akinalpfdn.sortue.utils.AudioManager
 
 @Composable
-fun SettingsOverlay(onDismiss: () -> Unit) {
+fun SettingsOverlay(
+    onDismiss: () -> Unit,
+    gameMode: com.akinalpfdn.sortue.models.GameMode, // Use fully qualified if needed or import
+    currentGridSize: Int,
+    onGridSizeChange: (Int) -> Unit
+) {
     val context = LocalContext.current
     val audioManager = remember { AudioManager.getInstance(context) }
     var isMusicEnabled by remember { mutableStateOf(audioManager.isMusicEnabled) }
@@ -86,6 +93,47 @@ fun SettingsOverlay(onDismiss: () -> Unit) {
                         checkedTrackColor = Color(0xFF3F51B5).copy(alpha = 0.5f)
                     )
                 )
+            }
+
+            if (gameMode == com.akinalpfdn.sortue.models.GameMode.CASUAL) {
+                androidx.compose.material3.HorizontalDivider()
+
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                     Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.grid_size),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.Black
+                        )
+                        Text(
+                            text = "${currentGridSize}x${currentGridSize}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF3F51B5)
+                        )
+                    }
+                    
+                    Slider(
+                        value = currentGridSize.toFloat(),
+                        onValueChange = { newValue ->
+                            val newInt = newValue.toInt()
+                            if (newInt != currentGridSize) {
+                                onGridSizeChange(newInt)
+                            }
+                        },
+                        valueRange = 4f..12f,
+                        steps = 7,
+                        colors = SwitchDefaults.colors( // SliderColors actually
+                            // Using default colors or custom? Slider uses SliderColors.
+                            // SwitchDefaults returns SwitchColors. Mistake in copy/paste?
+                            // Let's use SliderDefaults
+                        ).let { SliderDefaults.colors(thumbColor = Color(0xFF3F51B5), activeTrackColor = Color(0xFF3F51B5)) }
+                    )
+                }
             }
         }
     }

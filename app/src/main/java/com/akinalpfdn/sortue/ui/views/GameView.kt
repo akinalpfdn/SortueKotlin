@@ -31,6 +31,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
@@ -97,12 +98,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.akinalpfdn.sortue.R
 import com.akinalpfdn.sortue.models.GameStatus
 import com.akinalpfdn.sortue.models.Tile
+import com.akinalpfdn.sortue.models.GameMode
 import com.akinalpfdn.sortue.ui.components.AboutOverlay
 import com.akinalpfdn.sortue.ui.components.AmbientBackground
+import com.akinalpfdn.sortue.ui.components.GameOverOverlay
 import com.akinalpfdn.sortue.ui.components.SettingsOverlay
 import com.akinalpfdn.sortue.ui.components.SolutionOverlay
 import com.akinalpfdn.sortue.ui.components.TileView
 import com.akinalpfdn.sortue.ui.components.WinOverlay
+import com.akinalpfdn.sortue.ui.views.ModeSelectionView
 import com.akinalpfdn.sortue.utils.WinMessages
 import com.akinalpfdn.sortue.viewmodels.GameViewModel
 import kotlinx.coroutines.delay
@@ -119,6 +123,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
     val selectedTileId by vm.selectedTileId.collectAsState()
     val currentLevel by vm.currentLevel.collectAsState()
     val minMoves by vm.minMoves.collectAsState()
+    val gameMode by vm.gameMode.collectAsState()
 
     var showAbout by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
@@ -150,6 +155,12 @@ fun GameView(vm: GameViewModel = viewModel()) {
             showConfetti = false
             showWinOverlay = false
         }
+        }
+
+
+    // Back Handler
+    BackHandler(enabled = status == GameStatus.PLAYING || status == GameStatus.PREVIEW) {
+        vm.goToMenu()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -224,13 +235,11 @@ fun GameView(vm: GameViewModel = viewModel()) {
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = stringResource(
-                                R.string.level_display,
-                                currentLevel,
-                                gridDimension,
-                                gridDimension,
-                                moves
-                            ).uppercase(),
+                            text = if (gameMode == GameMode.LADDER) {
+                                "${stringResource(R.string.level_display, currentLevel, gridDimension, gridDimension, moves)} / 200"
+                            } else {
+                                stringResource(R.string.level_display, currentLevel, gridDimension, gridDimension, moves)
+                            }.uppercase(),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.Gray,
                             letterSpacing = 0.5.sp
@@ -273,13 +282,17 @@ fun GameView(vm: GameViewModel = viewModel()) {
                         CircleButton(
                             icon = Icons.Filled.Lightbulb,
                             onClick = { vm.useHint() },
-                            enabled = status == GameStatus.PLAYING
+                            enabled = status == GameStatus.PLAYING && gameMode != GameMode.LADDER
                         )
-                        CircleButton(
-                            icon = Icons.Filled.Shuffle,
-                            onClick = { vm.startNewGame() },
-                            enabled = status != GameStatus.PREVIEW
-                        )
+                        if (gameMode != GameMode.LADDER) {
+                            CircleButton(
+                                icon = Icons.Filled.Shuffle,
+                                onClick = { vm.startNewGame() },
+                                enabled = status != GameStatus.PREVIEW
+                            )
+                        } else {
+                            // No Shuffle/Start New option for Ladder
+                        }
                     }
                 }
             }
@@ -335,12 +348,11 @@ fun GameView(vm: GameViewModel = viewModel()) {
                                                 val dist = (currentPoint - startPoint).getDistance()
                                                 
                                                 if (!dragStarted && dist > dragThreshold) {
-                                                    // 2. Touch Move: Switch to Drag Mode
                                                     dragStarted = true
                                                     draggingTile = tile
-                                                    pressedTileId = null // Cancel press highlight
+                                                    pressedTileId = null 
                                                     
-                                                    // Initial drag position (center of the tile or touch point)
+                                                    
                                                     // We want the tile to center on the finger ideally, or stick to offset
                                                     // Simple approach: Center on finger
                                                     val bounds = itemBounds[tile.id] ?: Rect.Zero
@@ -406,74 +418,6 @@ fun GameView(vm: GameViewModel = viewModel()) {
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Slider
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp, vertical = 10.dp),
-                verticalArrangement = Arrangement.spacedBy(0.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.grid_size),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.Black.copy(alpha = 0.6f)
-                    )
-
-                    Text(
-                        text = "${gridDimension}x${gridDimension}",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF3F51B5)
-                    )
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Window,
-                        contentDescription = null,
-                        tint = Color.Gray.copy(alpha = 0.3f),
-                        modifier = Modifier.size(20.dp)
-                    )
-
-                    Slider(
-                        value = gridDimension.toFloat(),
-                        onValueChange = { newValue ->
-                            val newInt = newValue.toInt()
-                            if (newInt != gridDimension) {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                vm.startNewGame(dimension = newInt, preserveColors = true)
-                            }
-                        },
-                        valueRange = 4f..12f,
-                        steps = 7,
-                        modifier = Modifier.weight(1f),
-                        colors = SliderDefaults.colors(
-                            thumbColor = Color(0xFF3F51B5),
-                            activeTrackColor = Color(0xFF3F51B5),
-                            inactiveTrackColor = Color(0xFF3F51B5).copy(alpha = 0.15f),
-                            activeTickColor = Color.Transparent,
-                            inactiveTickColor = Color.Transparent
-                        )
-                    )
-
-                    Icon(
-                        imageVector = Icons.Filled.GridOn,
-                        contentDescription = null,
-                        tint = Color.Gray.copy(alpha = 0.3f),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
             }
         }
 
@@ -489,7 +433,8 @@ fun GameView(vm: GameViewModel = viewModel()) {
                 onNext = {
                     val nextDim = gridDimension // Keep logic same as swift version if needed
                     vm.startNewGame(dimension = nextDim)
-                }
+                },
+                showReplay = gameMode != GameMode.LADDER
             )
         }
 
@@ -498,8 +443,34 @@ fun GameView(vm: GameViewModel = viewModel()) {
         }
 
         if (showSettings) {
-             SettingsOverlay(onDismiss = { showSettings = false })
+             SettingsOverlay(
+                 onDismiss = { showSettings = false },
+                 gameMode = gameMode,
+                 currentGridSize = gridDimension,
+                 onGridSizeChange = { newSize ->
+                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                     vm.startNewGame(dimension = newSize, preserveColors = true)
+                 }
+             )
         }
+
+        if (status == GameStatus.MENU) {
+        if (status == GameStatus.MENU) {
+            ModeSelectionView(
+                onStartGame = { mode, size ->
+                    vm.playOrResumeGame(mode, size)
+                }
+            )
+        }
+        }
+
+        if (status == GameStatus.GAME_OVER) {
+            GameOverOverlay(
+                onRetry = { vm.startNewGame(dimension = gridDimension, mode = gameMode) },
+                onMenu = { vm.goToMenu() }
+            )
+        }
+
 
         // Solution Preview Overlay
         AnimatedVisibility(
@@ -538,19 +509,6 @@ fun GameView(vm: GameViewModel = viewModel()) {
             }
         }
     }
-}
-
-// TileView moved to com.akinalpfdn.sortue.ui.components.TileView
-
-
-// New Solution Overlay Component moved to SolutionOverlay.kt
-
-// SolutionOverlay moved to com.akinalpfdn.sortue.ui.components.SolutionOverlay
-
-
-// ... (Rest of PremiumWinOverlay, CircleButton, StatusIcon, ConfettiSystem remain same as previous file) ...
-// PremiumWinOverlay moved to com.akinalpfdn.sortue.ui.components.WinOverlay
-
 
 @Composable
 fun CircleButton(icon: ImageVector, onClick: () -> Unit, enabled: Boolean = true) {

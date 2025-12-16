@@ -42,7 +42,8 @@ import com.akinalpfdn.sortue.utils.WinMessages
 @Composable
 fun WinOverlay(
     onReplay: () -> Unit,
-    onNext: () -> Unit
+    onNext: () -> Unit,
+    showReplay: Boolean = true
 ) {
     val context = LocalContext.current
     val title = remember { WinMessages.getTitles(context).random() }
@@ -120,17 +121,19 @@ fun WinOverlay(
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
-                    onClick = onReplay,
-                    modifier = Modifier
-                        .size(50.dp)
-                        .background(Color.Gray.copy(alpha = 0.1f), CircleShape)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Refresh,
-                        contentDescription = null,
-                        tint = Color.Black.copy(alpha = 0.8f)
-                    )
+                if (showReplay) {
+                    IconButton(
+                        onClick = onReplay,
+                        modifier = Modifier
+                            .size(50.dp)
+                            .background(Color.Gray.copy(alpha = 0.1f), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Refresh,
+                            contentDescription = null,
+                            tint = Color.Black.copy(alpha = 0.8f)
+                        )
+                    }
                 }
 
                 Box(

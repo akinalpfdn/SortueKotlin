@@ -8,6 +8,7 @@ import com.akinalpfdn.sortue.models.Corners
 import com.akinalpfdn.sortue.models.GameStatus
 import com.akinalpfdn.sortue.models.RGBData
 import com.akinalpfdn.sortue.models.Tile
+import com.akinalpfdn.sortue.models.GameMode
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +25,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val _tiles = MutableStateFlow<List<Tile>>(emptyList())
     val tiles: StateFlow<List<Tile>> = _tiles.asStateFlow()
 
-    private val _status = MutableStateFlow(GameStatus.PREVIEW)
+    private val _status = MutableStateFlow(GameStatus.MENU)
+
     val status: StateFlow<GameStatus> = _status.asStateFlow()
 
     private val _gridDimension = MutableStateFlow(4)
@@ -42,6 +44,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val _minMoves = MutableStateFlow(0)
     val minMoves: StateFlow<Int> = _minMoves.asStateFlow()
 
+    private val _gameMode = MutableStateFlow(GameMode.CASUAL)
+    val gameMode: StateFlow<GameMode> = _gameMode.asStateFlow()
+
+
     private var shuffleJob: Job? = null
     private var winJob: Job? = null
 
@@ -50,26 +56,36 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val gson = com.google.gson.Gson()
 
     init {
-        if (!loadGameState()) {
-            startNewGame()
+        val lastModeName = prefs.getString("last_active_mode", GameMode.CASUAL.name)
+        val lastMode = try { GameMode.valueOf(lastModeName!!) } catch (e: Exception) { GameMode.CASUAL }
+        
+        if (!loadGameState(lastMode)) {
+            // If no save for last mode, start fresh casual
+            startNewGame(mode = GameMode.CASUAL, dimension = 4)
         }
     }
 
     private fun saveGameState() {
+        // Save using key specific to current mode
+        val mode = _gameMode.value
         val state = GameState(
             tiles = _tiles.value,
             status = _status.value,
             gridDimension = _gridDimension.value,
             moves = _moves.value,
             corners = currentCorners,
-            minMoves = _minMoves.value
+            minMoves = _minMoves.value,
+            gameMode = mode
         )
         val json = gson.toJson(state)
-        prefs.edit().putString("saved_game_state", json).apply()
+        prefs.edit()
+            .putString("saved_game_state_${mode.name}", json)
+            .putString("last_active_mode", mode.name)
+            .apply()
     }
 
-    private fun loadGameState(): Boolean {
-        val json = prefs.getString("saved_game_state", null) ?: return false
+    private fun loadGameState(targetMode: GameMode): Boolean {
+        val json = prefs.getString("saved_game_state_${targetMode.name}", null) ?: return false
         return try {
             val state = gson.fromJson(json, GameState::class.java)
             _tiles.value = state.tiles
@@ -77,10 +93,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             _gridDimension.value = state.gridDimension
             _moves.value = state.moves
             currentCorners = state.corners
-            // Default to 0 for backward compatibility
             _minMoves.value = state.minMoves ?: 0
+            _gameMode.value = state.gameMode ?: targetMode
 
-            // Restore level count for display
             val dim = state.gridDimension
             val savedLevel = prefs.getInt("level_count_$dim", 0)
             _currentLevel.value = savedLevel + 1
@@ -98,11 +113,14 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val gridDimension: Int,
         val moves: Int,
         val corners: Corners?,
-        val minMoves: Int? = 0
+        val minMoves: Int? = 0,
+        val gameMode: GameMode? = GameMode.CASUAL
     )
 
-    fun startNewGame(dimension: Int? = null, preserveColors: Boolean = false) {
+    fun startNewGame(dimension: Int? = null, mode: GameMode? = null, preserveColors: Boolean = false) {
         dimension?.let { _gridDimension.value = it }
+        mode?.let { _gameMode.value = it }
+
         val dim = _gridDimension.value
 
         // Update level for the current dimension
@@ -344,6 +362,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         _tiles.value = shuffled
         _minMoves.value = calculateMinMoves(shuffled)
         _status.value = GameStatus.PLAYING
+        // For Ladder mode, moves reset to 0 in startNewGame, but if we are restarting level?
+        // startNewGame calls shuffleBoard 2.5s later. Moves are 0ed in startNewGame.
         saveGameState()
     }
 
@@ -380,12 +400,28 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             _tiles.value = currentList
             _moves.value += 1
             saveGameState()
+
+            if (_gameMode.value == GameMode.LADDER) {
+                if (_moves.value >= 200) {
+                     // Check win first? Or strict limit? 
+                     // Usually check win first.
+                     checkWinCondition() // Updates status if won
+                     if (_status.value != GameStatus.ANIMATING && _status.value != GameStatus.WON) {
+                         // Failed
+                         _status.value = GameStatus.GAME_OVER
+                         saveGameState()
+                     }
+                     return
+                }
+            }
             checkWinCondition()
         }
     }
 
     fun useHint() {
         if (_status.value != GameStatus.PLAYING) return
+        if (_gameMode.value == GameMode.LADDER) return // No hints in Ladder
+
 
         val currentList = _tiles.value.toMutableList()
 
@@ -480,5 +516,42 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             cycles++
         }
         return n - cycles
+    }
+    fun goToMenu() {
+        if (_status.value != GameStatus.GAME_OVER) {
+             _status.value = GameStatus.MENU
+        }
+    }
+
+    fun resumeGame() {
+        if (_tiles.value.isNotEmpty() && _status.value != GameStatus.WON && _status.value != GameStatus.GAME_OVER) {
+            _status.value = GameStatus.PLAYING
+        }
+    }
+
+    fun playOrResumeGame(mode: GameMode, size: Int) {
+        // 1. Save current state of the active mode before switching (if applicable)
+        if (_tiles.value.isNotEmpty()) {
+            saveGameState()
+        }
+
+        // 2. Try to load the saved state for the TARGET mode
+        if (loadGameState(mode)) {
+            // We found a save!
+            // In Casual, if "resume" logic is strictly "pick up where left off", 
+            // we should NOT overwrite it just because I passed a default 'size' of 4 from the menu.
+            // However, if the USER explicitly wanted to change size, they can't do it from Menu anymore.
+            // They do it from Settings inside the game.
+            // So here, we ALWAYS resume if a save exists.
+            
+            // Just ensure we are not in MENU state if we loaded data
+            if (_status.value == GameStatus.MENU) {
+                _status.value = GameStatus.PLAYING // Resume play
+            }
+            
+        } else {
+            // No save found for this mode, start fresh
+            startNewGame(dimension = size, mode = mode)
+        }
     }
 }

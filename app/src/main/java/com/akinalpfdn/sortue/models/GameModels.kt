@@ -108,8 +108,10 @@ data class Tile(
 )
 
 enum class GameStatus {
+    MENU,
     PREVIEW,
     PLAYING,
     ANIMATING,
-    WON
+    WON,
+    GAME_OVER
 }
