@@ -99,6 +99,8 @@ import com.akinalpfdn.sortue.models.GameStatus
 import com.akinalpfdn.sortue.models.Tile
 import com.akinalpfdn.sortue.ui.components.AboutOverlay
 import com.akinalpfdn.sortue.ui.components.AmbientBackground
+import com.akinalpfdn.sortue.ui.components.SettingsOverlay
+import com.akinalpfdn.sortue.ui.components.SolutionOverlay
 import com.akinalpfdn.sortue.ui.components.WinOverlay
 import com.akinalpfdn.sortue.utils.WinMessages
 import com.akinalpfdn.sortue.viewmodels.GameViewModel
@@ -619,68 +621,10 @@ fun TileView(
     }
 }
 
-// New Solution Overlay Component
-@Composable
-fun SolutionOverlay(tiles: List<Tile>, gridDimension: Int) {
-    // Sort tiles by correctId to reconstruct the solved image
-    val solvedTiles = remember(tiles) { tiles.sortedBy { it.correctId } }
+// New Solution Overlay Component moved to SolutionOverlay.kt
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.3f))
-            .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { }, // Block touches
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        )
-        {
-            Text(
-                text = stringResource(R.string.target_gradient),
-                style = MaterialTheme.typography.headlineSmall,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.shadow(4.dp)
-            )
+// SolutionOverlay moved to com.akinalpfdn.sortue.ui.components.SolutionOverlay
 
-            Box(
-                modifier = Modifier
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.White)
-            ){
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(gridDimension),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                userScrollEnabled = false,
-                modifier = Modifier.fillMaxWidth().padding(16.dp)
-            ) {
-                itemsIndexed(solvedTiles) { _, tile ->
-                    Box(
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(tile.rgb.color)
-                    ) {
-                        if (tile.isFixed) {
-                            Box(
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .size(4.dp)
-                                    .background(Color.Black.copy(alpha = 0.3f), CircleShape)
-                            )
-                        }
-                    }
-
-                }
-            }
-        }
-        }
-    }
-}
 
 // ... (Rest of PremiumWinOverlay, CircleButton, StatusIcon, ConfettiSystem remain same as previous file) ...
 // PremiumWinOverlay moved to com.akinalpfdn.sortue.ui.components.WinOverlay
@@ -732,63 +676,8 @@ fun StatusIcon(status: GameStatus) {
 
 
 
-@Composable
-fun SettingsOverlay(onDismiss: () -> Unit) {
-    val context = LocalContext.current
-    val audioManager = remember { AudioManager.getInstance(context) }
-    var isMusicEnabled by remember { mutableStateOf(audioManager.isMusicEnabled) }
+// SettingsOverlay moved to com.akinalpfdn.sortue.ui.components.SettingsOverlay
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.5f))
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onDismiss() }
-            .zIndex(200f), // Ensure high z-index
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(32.dp)
-                .shadow(elevation = 16.dp, shape = RoundedCornerShape(24.dp))
-                .clip(RoundedCornerShape(24.dp))
-                .background(Color.White)
-                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {} // Prevent dismiss
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.settings),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.music),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.Black
-                )
-                Switch(
-                    checked = isMusicEnabled,
-                    onCheckedChange = {
-                        isMusicEnabled = it
-                        audioManager.isMusicEnabled = it
-                    },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = Color(0xFF3F51B5),
-                        checkedTrackColor = Color(0xFF3F51B5).copy(alpha = 0.5f)
-                    )
-                )
-            }
-        }
-    }
-}
 
 class ConfettiParticle(
     initialX: Float,
