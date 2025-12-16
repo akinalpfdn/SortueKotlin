@@ -137,12 +137,21 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val w = dim
         val h = dim
 
+        // DETERMINISTIC SEED GENERATION
+        // Seed = (Mode_Ordinal + 1) * 10000 + Level. 
+        // Example: Casual(0) Lvl1 -> 10001. Ladder(1) Lvl1 -> 20001.
+        // Ensures different modes have different seeds, and levels change (no zero).
+        val modeSeedOffset = (_gameMode.value.ordinal + 1) * 10000L
+        val levelSeed = modeSeedOffset + _currentLevel.value
+        // Use this single Random instance for all generation in this level
+        val levelRandom = Random(levelSeed)
+
         // 1. Generate corners
         val corners = if (preserveColors && currentCorners != null) {
             currentCorners!!
         } else {
-            // Use Curated Strategy
-            generateHarmoniousCorners().also { currentCorners = it }
+            // Use Curated Strategy with Seeded Random
+            generateHarmoniousCorners(levelRandom).also { currentCorners = it }
         }
 
         val newTiles = mutableListOf<Tile>()
@@ -178,23 +187,28 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         saveGameState()
 
         // 3. Schedule Shuffle
+        // We must pass the seeded random (or a fresh specific one) to ensure deterministic shuffle too.
+        // Since Random instance state mutates, we can pass `levelRandom` if we want 'shuffle' to depend on 'corners' generation steps.
+        // Or we can create a FRESH deterministic Random for shuffle part:
+        // val shuffleRandom = Random(levelSeed + 1) 
+        // Let's use `levelRandom` to keep one continuous stream of randomness for the level.
+        // We need to pass it to the coroutine.
         shuffleJob = viewModelScope.launch {
             delay(2500)
-            shuffleBoard()
+            shuffleBoard(Random(levelSeed + 999)) // Use a variant of seed for shuffle to ensure it's determined but distinct
         }
     }
     enum class HarmonyProfile {
         SUNSET, OCEAN, FOREST, BERRY, AURORA, CITRUS, MIDNIGHT
     }
     // Generates aesthetically pleasing palettes using Curated Harmony Profiles
-    private fun generateHarmoniousCorners(): Corners {
+    // Seeded Random version
+    private fun generateHarmoniousCorners(rng: Random): Corners {
 
-
-
-        val profile = HarmonyProfile.values().random()
+        val profile = HarmonyProfile.values().random(rng) // Use seeded random
 
         // Helper to randomize slightly within a safe range
-        fun rnd(min: Double, max: Double): Double = Random.nextDouble(min, max)
+        fun rnd(min: Double, max: Double): Double = rng.nextDouble(min, max)
 
         var h1 = 0.0; var s1 = 0.0; var b1 = 0.0
         var h2 = 0.0; var s2 = 0.0; var b2 = 0.0
@@ -309,7 +323,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val c3 = RGBData.fromHSB(h3, s3, b3) // Mid 2
 
         // Rotate/Shuffle assignments so "Light" isn't always Top-Left
-        val rotation = Random.nextInt(0, 4)
+        val rotation = rng.nextInt(0, 4)
 
         val tl: RGBData
         val tr: RGBData
@@ -326,7 +340,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         return Corners(tl, tr, bl, br)
     }
 
-    private fun shuffleBoard() {
+    private fun shuffleBoard(rng: Random) {
         val currentTiles = _tiles.value
         val w = _gridDimension.value
         val h = _gridDimension.value
@@ -335,8 +349,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val mutableTiles = currentTiles.filter { !it.isFixed }.toMutableList()
         val fixedTiles = currentTiles.filter { it.isFixed }
 
-        // Shuffle only the middle parts
-        mutableTiles.shuffle()
+        // Shuffle only the middle parts using Deterministic RNG
+        mutableTiles.shuffle(rng)
 
         // Reconstruct the grid array
         val finalGrid = arrayOfNulls<Tile>(w * h)
