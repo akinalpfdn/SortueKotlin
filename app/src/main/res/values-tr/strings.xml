@@ -116,4 +116,12 @@
     <string name="casual_Text">Rahatça oyna, sınırsız ipucu ve sıfır limit</string>
     <string name="ladder_Text">Seviyeyi verilen hamle sayısında tamamla</string>
     <string name="challenge_Text">yardım yok, kendini zorla</string>
+
+    <!-- Precision Mode Display -->
+    <string name="level_display_precision">Seviye %1$d (%2$dx%3$d) - %4$d hamlen kaldı</string>
+    <!-- Game Over Screen -->
+    <string name="game_over_title">OYUN BİTTİ</string>
+    <string name="game_over_desc">Hamlen kalmadı!</string>
+    <string name="try_again">Tekrar dene</string>
+    <string name="back_to_menu">Menüye dön</string>
 </resources>

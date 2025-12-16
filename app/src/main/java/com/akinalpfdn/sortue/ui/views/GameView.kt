@@ -318,7 +318,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                                     .graphicsLayer {
                                         alpha = if (isDragging) 0f else 1f
                                     }
-                                    .pointerInput(tile.id, status, isLockingEnabled) {
+                                    .pointerInput(tile.id, index, status, isLockingEnabled) {
                                         // Block interaction if Game is not playing, Tile is fixed (corner), 
                                         // OR if tile is Correct AND Locking is Enabled (Casual/Ladder)
                                         val isLocked = tile.correctId == index && isLockingEnabled
@@ -379,14 +379,16 @@ fun GameView(vm: GameViewModel = viewModel()) {
                                                 }?.key
                                                 
                                                 if (targetId != null && targetId != tile.id) {
-                                                    // Check if target is fixed? The VM handles checking, but we should be safe
-                                                    // Assuming VM allows swapping with non-fixed.
-                                                    // We need to check if target is fixed? 
-                                                    // We can optimize by checking `tiles` list but VM does it.
+                                                    // Check if target is fixed or locked
                                                     val targetTile = tiles.find { it.id == targetId }
                                                     if (targetTile != null && !targetTile.isFixed) {
-                                                       haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                       vm.swapTiles(tile.id, targetId) 
+                                                        // Prevent swapping if target is already correct AND locking is enabled
+                                                        val isTargetLocked = (targetTile.correctId == targetTile.currentIdx) && isLockingEnabled
+                                                        
+                                                        if (!isTargetLocked) {
+                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                            vm.swapTiles(tile.id, targetId)
+                                                        }
                                                     }
                                                 }
                                                 draggingTile = null

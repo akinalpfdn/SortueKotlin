@@ -118,7 +118,7 @@
     <string name="challenge_Text">zero help, challenge yourself</string>
 
     <!-- Precision Mode Display -->
-    <string name="level_display_precision">Level %1$d (%2$dx%3$d) - %4$d LEFT</string>
+    <string name="level_display_precision">Level %1$d (%2$dx%3$d) - %4$d move left</string>
 
     <!-- Game Over Screen -->
     <string name="game_over_title">GAME OVER</string>
