@@ -338,7 +338,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                             val isLockingEnabled = gameMode != GameMode.PURE
                             TileView(
                                 tile = tile,
-                                isSelected = selectedTileId == tile.id || pressedTileId == tile.id,
+                                isSelected = selectedTileId == tile.id || pressedTileId == tile.id || isDragging,
                                 isWon = status == GameStatus.WON || status == GameStatus.ANIMATING,
                                 status = status,
                                 index = index,
@@ -350,7 +350,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                                         itemBounds[tile.id] = coordinates.boundsInRoot()
                                     }
                                     .graphicsLayer {
-                                        alpha = if (isDragging) 0f else 1f
+                                        alpha = if (isDragging) 0.6f else 1f
                                     }
                                     .pointerInput(tile.id, index, status, isLockingEnabled) {
                                         // Block interaction if Game is not playing, Tile is fixed (corner), 
