@@ -52,7 +52,6 @@
     <string name="win_title_balanced">Dengeli</string>
     <string name="win_title_aligned">Hizalı</string>
 
-    <string name="min_moves">MIN HAMLE: %1$d</string>
     <!-- Win Subtitles -->
     <string name="win_subtitle_spectrum">Spektrum tamamlandı.</string>
     <string name="win_subtitle_balance">Denge sağlandı.</string>
@@ -124,4 +123,8 @@
     <string name="game_over_desc">Hamlen kalmadı!</string>
     <string name="try_again">Tekrar dene</string>
     <string name="back_to_menu">Menüye dön</string>
+    <!-- Best Stats -->
+    <string name="min_moves">MIN HAMLE: %1$d</string>
+    <string name="best_time_fmt">EN İYİ SÜRE  : %1$02d:%2$02d</string>
+    <string name="best_moves_fmt">EN İYİ HAMLE: %1$d</string>
 </resources>

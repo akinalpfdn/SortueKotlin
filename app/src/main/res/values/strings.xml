@@ -125,4 +125,8 @@
     <string name="game_over_desc">You ran out of moves!</string>
     <string name="try_again">TRY AGAIN</string>
     <string name="back_to_menu">BACK TO MENU</string>
+
+    <!-- Best Stats -->
+    <string name="best_time_fmt">BEST TIME  : %1$02d:%2$02d</string>
+    <string name="best_moves_fmt">BEST MOVES: %1$d</string>
 </resources>

@@ -256,7 +256,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                                 val min = it / 60
                                 val sec = it % 60
                                 Text(
-                                    text = "BEST TIME: %02d:%02d".format(min, sec),
+                                    text = stringResource(R.string.best_time_fmt, min, sec),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.Gray.copy(alpha = 0.8f),
@@ -265,7 +265,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                             }
                             bestMoves?.let {
                                 Text(
-                                    text = "BEST MOVES: $it",
+                                    text = stringResource(R.string.best_moves_fmt, it),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.Gray.copy(alpha = 0.8f),
