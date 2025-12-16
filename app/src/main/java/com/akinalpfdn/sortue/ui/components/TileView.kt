@@ -39,7 +39,8 @@ fun TileView(
     index: Int,
     gridWidth: Int,
     modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null // Made optional and nullable as we might use external gesture
+    onClick: (() -> Unit)? = null,
+    showCheck: Boolean = true // New parameter to control check icon and visual locking
 ) {
     val x = index % gridWidth
     val y = index / gridWidth
@@ -50,7 +51,9 @@ fun TileView(
 
     // Check if tile is in correct position (Logic for "Locking")
     // Only check if playing and not a fixed corner
+    // We only consider it "visually locked" if showCheck is true
     val isCorrectlyPlaced = (status == GameStatus.PLAYING) && (tile.correctId == index) && !tile.isFixed
+    val isLocked = isCorrectlyPlaced && showCheck
 
     LaunchedEffect(isWon) {
         if (isWon) {
@@ -60,15 +63,15 @@ fun TileView(
             offsetY.animateTo(-10f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessLow))
         } else {
             // Reset state if game restarts
-            scale.animateTo(if (isSelected) 0.9f else (if (isCorrectlyPlaced) 0.95f else 1.0f))
+            scale.animateTo(if (isSelected) 0.9f else (if (isLocked) 0.95f else 1.0f))
             offsetY.animateTo(0f)
         }
     }
 
-    LaunchedEffect(isSelected, isCorrectlyPlaced) {
+    LaunchedEffect(isSelected, isLocked) {
         if (!isWon) {
             // Scale down slightly if locked to show it's "set"
-            val targetScale = if (isSelected) 0.9f else (if (isCorrectlyPlaced) 0.95f else 1.0f)
+            val targetScale = if (isSelected) 0.9f else (if (isLocked) 0.95f else 1.0f)
             scale.animateTo(targetScale)
         }
     }
@@ -88,7 +91,8 @@ fun TileView(
             )
             // Add interaction source to disable ripple if needed, or rely on clickable enabled state
             .then(modifier)
-            .then(if (onClick != null) Modifier.clickable(enabled = !tile.isFixed && !isCorrectlyPlaced) { onClick() } else Modifier)
+            // Disable click if locked
+            .then(if (onClick != null) Modifier.clickable(enabled = !tile.isFixed && !isLocked) { onClick() } else Modifier)
     ) {
         // Overlay Icons
         if (tile.isFixed) {
@@ -98,8 +102,8 @@ fun TileView(
                     .size(6.dp)
                     .background(Color.Black.copy(alpha = 0.3f), CircleShape)
             )
-        } else if (isCorrectlyPlaced) {
-            // Locked Visual (Checkmark)
+        } else if (isLocked) {
+            // Locked Visual (Checkmark) -- ONLY if showCheck is true
             Icon(
                 imageVector = Icons.Filled.Check,
                 contentDescription = null,

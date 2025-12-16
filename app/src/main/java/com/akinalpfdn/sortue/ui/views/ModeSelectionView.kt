@@ -10,8 +10,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -38,7 +40,9 @@ import com.akinalpfdn.sortue.ui.components.WheelPicker
 
 @Composable
 fun ModeSelectionView(
-    onStartGame: (GameMode, Int) -> Unit
+    onStartGame: (GameMode, Int) -> Unit,
+    onSettingsClick: () -> Unit,
+    onAboutClick: () -> Unit
 ) {
     val modes = GameMode.values().toList()
     var selectedModeIndex by remember { mutableIntStateOf(0) } // Default to 0 (Casual)
@@ -51,6 +55,60 @@ fun ModeSelectionView(
     ) {
         // Shared Background
         AmbientBackground()
+
+        // Top Bar Area: Menu Button (Matching GameView style/location)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .padding(top = 24.dp), // Exact padding from GameView
+            contentAlignment = Alignment.TopStart
+        ) {
+             var showMenu by remember { androidx.compose.runtime.mutableStateOf(false) }
+
+             Box {
+                 androidx.compose.material3.IconButton(
+                     onClick = { showMenu = true },
+                     modifier = Modifier.size(44.dp)
+                 ) {
+                     // Replicating StatusIcon style for "Settings/Menu" visual
+                     Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .shadow(4.dp, RoundedCornerShape(12.dp), spotColor = Color.Black.copy(alpha = 0.05f))
+                            .background(Color.White, RoundedCornerShape(12.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Filled.Settings,
+                            contentDescription = null,
+                            tint = Color.Black
+                        )
+                    }
+                 }
+
+                 androidx.compose.material3.DropdownMenu(
+                     expanded = showMenu,
+                     onDismissRequest = { showMenu = false },
+                     modifier = Modifier.background(Color.White)
+                 ) {
+                     androidx.compose.material3.DropdownMenuItem(
+                         text = { Text(stringResource(R.string.settings)) },
+                         onClick = {
+                             showMenu = false
+                             onSettingsClick()
+                         }
+                     )
+                     androidx.compose.material3.DropdownMenuItem(
+                         text = { Text(stringResource(R.string.about)) },
+                         onClick = {
+                             showMenu = false
+                             onAboutClick()
+                         }
+                     )
+                 }
+             }
+        }
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,

@@ -265,33 +265,39 @@ fun GameView(vm: GameViewModel = viewModel()) {
 
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         // Solution Preview Button
-                        CircleButton(
-                            icon = Icons.Filled.Visibility, // Eye icon
-                            onClick = {
-                                if (!showSolutionPreview) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    showSolutionPreview = true
-                                    scope.launch {
-                                        delay(2000) // Hide after 2 seconds
-                                        showSolutionPreview = false
+                        if (gameMode != GameMode.CHALLENGE) {
+                            CircleButton(
+                                icon = Icons.Filled.Visibility, // Eye icon
+                                onClick = {
+                                    if (!showSolutionPreview) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        showSolutionPreview = true
+                                        scope.launch {
+                                            delay(2000) // Hide after 2 seconds
+                                            showSolutionPreview = false
+                                        }
                                     }
-                                }
-                            },
-                            enabled = status == GameStatus.PLAYING && !showSolutionPreview
-                        )
-                        CircleButton(
-                            icon = Icons.Filled.Lightbulb,
-                            onClick = { vm.useHint() },
-                            enabled = status == GameStatus.PLAYING && gameMode != GameMode.LADDER
-                        )
-                        if (gameMode != GameMode.LADDER) {
+                                },
+                                enabled = status == GameStatus.PLAYING && !showSolutionPreview
+                            )
+                        }
+
+                        // Hint Button
+                        if (gameMode == GameMode.CASUAL) {
+                            CircleButton(
+                                icon = Icons.Filled.Lightbulb,
+                                onClick = { vm.useHint() },
+                                enabled = status == GameStatus.PLAYING
+                            )
+                        }
+
+                        // Shuffle Button (Casual Only)
+                        if (gameMode == GameMode.CASUAL) {
                             CircleButton(
                                 icon = Icons.Filled.Shuffle,
                                 onClick = { vm.startNewGame() },
                                 enabled = status != GameStatus.PREVIEW
                             )
-                        } else {
-                            // No Shuffle/Start New option for Ladder
                         }
                     }
                 }
@@ -315,6 +321,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                     itemsIndexed(tiles, key = { _, it -> it.id }) { index, tile ->
                         Box(modifier = Modifier.animateItem()) {
                             val isDragging = draggingTile?.id == tile.id
+                            val isLockingEnabled = gameMode != GameMode.CHALLENGE 
                             TileView(
                                 tile = tile,
                                 isSelected = selectedTileId == tile.id || pressedTileId == tile.id,
@@ -322,6 +329,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                                 status = status,
                                 index = index,
                                 gridWidth = gridDimension,
+                                showCheck = isLockingEnabled, // Pass locking state
                                 modifier = Modifier
                                     .onGloballyPositioned { coordinates ->
                                         itemBounds[tile.id] = coordinates.boundsInRoot()
@@ -329,8 +337,11 @@ fun GameView(vm: GameViewModel = viewModel()) {
                                     .graphicsLayer {
                                         alpha = if (isDragging) 0f else 1f
                                     }
-                                    .pointerInput(tile.id, status) {
-                                        if (status != GameStatus.PLAYING || tile.isFixed) return@pointerInput
+                                    .pointerInput(tile.id, status, isLockingEnabled) {
+                                        // Block interaction if Game is not playing, Tile is fixed (corner), 
+                                        // OR if tile is Correct AND Locking is Enabled (Casual/Ladder)
+                                        val isLocked = tile.correctId == index && isLockingEnabled
+                                        if (status != GameStatus.PLAYING || tile.isFixed || isLocked) return@pointerInput
                                         
                                         awaitEachGesture {
                                             val down = awaitFirstDown(requireUnconsumed = false)
@@ -403,7 +414,8 @@ fun GameView(vm: GameViewModel = viewModel()) {
                                                 // Tap Logic
                                                 // If we didn't drag, it's a tap.
                                                 // Prevent interaction if already correct (reusing existing logic)
-                                                if (status == GameStatus.PLAYING && tile.correctId == index && !tile.isFixed) {
+                                                // Prevent interaction if already correct AND locking enabled
+                                                if (status == GameStatus.PLAYING && tile.correctId == index && !tile.isFixed && isLockingEnabled) {
                                                     haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                                 } else {
                                                     vm.selectTile(tile)
@@ -525,6 +537,12 @@ fun GameView(vm: GameViewModel = viewModel()) {
             ModeSelectionView(
                 onStartGame = { mode, size ->
                     vm.playOrResumeGame(mode, size)
+                },
+                onSettingsClick = {
+                    showSettings = true
+                },
+                onAboutClick = {
+                    showAbout = true
                 }
             )
         }
@@ -569,7 +587,8 @@ fun GameView(vm: GameViewModel = viewModel()) {
                     status = GameStatus.PLAYING,
                     index = 0, // irrelevant for visual only
                     gridWidth = gridDimension,
-                    modifier = Modifier.fillMaxSize() // Fill the box
+                    modifier = Modifier.fillMaxSize(), // Fill the box
+                    showCheck = gameMode != GameMode.CHALLENGE
                 )
             }
         }
