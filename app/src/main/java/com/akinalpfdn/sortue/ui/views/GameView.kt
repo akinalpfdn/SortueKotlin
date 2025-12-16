@@ -99,6 +99,7 @@ import com.akinalpfdn.sortue.models.GameStatus
 import com.akinalpfdn.sortue.models.Tile
 import com.akinalpfdn.sortue.ui.components.AboutOverlay
 import com.akinalpfdn.sortue.ui.components.AmbientBackground
+import com.akinalpfdn.sortue.ui.components.WinOverlay
 import com.akinalpfdn.sortue.utils.WinMessages
 import com.akinalpfdn.sortue.viewmodels.GameViewModel
 import kotlinx.coroutines.delay
@@ -480,7 +481,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
         }
 
         if (showWinOverlay) {
-            PremiumWinOverlay(
+            WinOverlay(
                 onReplay = { vm.startNewGame(preserveColors = true) },
                 onNext = {
                     val nextDim = gridDimension // Keep logic same as swift version if needed
@@ -682,130 +683,8 @@ fun SolutionOverlay(tiles: List<Tile>, gridDimension: Int) {
 }
 
 // ... (Rest of PremiumWinOverlay, CircleButton, StatusIcon, ConfettiSystem remain same as previous file) ...
-@Composable
-fun PremiumWinOverlay(onReplay: () -> Unit, onNext: () -> Unit) {
-    val context = LocalContext.current
-    // Ensure WinMessages utility exists or define strings here
-    val title = remember { WinMessages.getTitles(context).random() }
-    val subtitle = remember { WinMessages.getSubtitles(context).random() }
+// PremiumWinOverlay moved to com.akinalpfdn.sortue.ui.components.WinOverlay
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.2f))
-            .clickable(enabled = false) {},
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(32.dp)
-                .shadow(
-                    elevation = 30.dp,
-                    shape = RoundedCornerShape(32.dp),
-                    spotColor = Color.Black.copy(alpha = 0.25f)
-                )
-                .clip(RoundedCornerShape(32.dp))
-                .background(Color.White.copy(alpha = 0.85f))
-                .border(1.dp, Color.White.copy(alpha = 0.4f), RoundedCornerShape(32.dp))
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(30.dp)
-        ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.padding(top = 10.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .background(
-                            brush = Brush.linearGradient(
-                                colors = listOf(
-                                    Color(0xFF3F51B5).copy(alpha = 0.2f),
-                                    Color(0xFF9C27B0).copy(alpha = 0.2f)
-                                )
-                            ),
-                            shape = CircleShape
-                        )
-                )
-                Icon(
-                    imageVector = Icons.Filled.Star,
-                    contentDescription = null,
-                    modifier = Modifier.size(36.dp),
-                    tint = Color(0xFF3F51B5)
-                )
-            }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontFamily = FontFamily.Serif,
-                        fontWeight = FontWeight.Medium
-                    ),
-                    color = Color.Black
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Black.copy(alpha = 0.8f),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = onReplay,
-                    modifier = Modifier
-                        .size(50.dp)
-                        .background(Color.Gray.copy(alpha = 0.1f), CircleShape)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Refresh,
-                        contentDescription = null,
-                        tint = Color.Black.copy(alpha = 0.8f)
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(50.dp)
-                        .shadow(8.dp, CircleShape, spotColor = Color.Black.copy(alpha = 0.2f))
-                        .background(Color.Black.copy(alpha = 0.7f), CircleShape)
-                        .clickable { onNext() },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(horizontal = 20.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.next_level),
-                            color = Color.White,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun CircleButton(icon: ImageVector, onClick: () -> Unit, enabled: Boolean = true) {
