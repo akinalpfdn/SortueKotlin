@@ -114,6 +114,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
     val moves by vm.moves.collectAsState()
     val selectedTileId by vm.selectedTileId.collectAsState()
     val currentLevel by vm.currentLevel.collectAsState()
+    val minMoves by vm.minMoves.collectAsState()
 
     var showAbout by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
@@ -237,8 +238,18 @@ fun GameView(vm: GameViewModel = viewModel()) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.End
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Min Moves Display
+                    Text(
+                        text = "MIN MOVES: $minMoves",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Gray.copy(alpha = 0.8f),
+                        letterSpacing = 1.sp
+                    )
+
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         // Solution Preview Button
                         CircleButton(

@@ -39,6 +39,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val _currentLevel = MutableStateFlow(1)
     val currentLevel: StateFlow<Int> = _currentLevel.asStateFlow()
 
+    private val _minMoves = MutableStateFlow(0)
+    val minMoves: StateFlow<Int> = _minMoves.asStateFlow()
+
     private var shuffleJob: Job? = null
     private var winJob: Job? = null
 
@@ -58,7 +61,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             status = _status.value,
             gridDimension = _gridDimension.value,
             moves = _moves.value,
-            corners = currentCorners
+            corners = currentCorners,
+            minMoves = _minMoves.value
         )
         val json = gson.toJson(state)
         prefs.edit().putString("saved_game_state", json).apply()
@@ -73,6 +77,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             _gridDimension.value = state.gridDimension
             _moves.value = state.moves
             currentCorners = state.corners
+            // Default to 0 for backward compatibility
+            _minMoves.value = state.minMoves ?: 0
 
             // Restore level count for display
             val dim = state.gridDimension
@@ -91,7 +97,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val status: GameStatus,
         val gridDimension: Int,
         val moves: Int,
-        val corners: Corners?
+        val corners: Corners?,
+        val minMoves: Int? = 0
     )
 
     fun startNewGame(dimension: Int? = null, preserveColors: Boolean = false) {
@@ -106,6 +113,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         winJob?.cancel()
         _status.value = GameStatus.PREVIEW
         _moves.value = 0
+        _minMoves.value = 0
         _selectedTileId.value = null
 
         val w = dim
@@ -332,7 +340,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
 
-        _tiles.value = finalGrid.filterNotNull()
+        val shuffled = finalGrid.filterNotNull()
+        _tiles.value = shuffled
+        _minMoves.value = calculateMinMoves(shuffled)
         _status.value = GameStatus.PLAYING
         saveGameState()
     }
@@ -424,5 +434,51 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 saveGameState()
             }
         }
+    }
+
+    private fun calculateMinMoves(tiles: List<Tile>): Int {
+        val n = tiles.size
+        val visited = BooleanArray(n) { false }
+        var cycles = 0
+
+        // Permutation P[i] = tiles[i].correctId
+        // Trace cycles of this permutation
+        for (i in 0 until n) {
+            if (visited[i]) continue
+            
+            // If at correct position, it's a 1-cycle
+            if (tiles[i].correctId == i) {
+                visited[i] = true
+                cycles++
+                continue
+            }
+
+            var current = i
+            while (!visited[current]) {
+                visited[current] = true
+                // The element that belongs at 'current' index is somewhere? 
+                // No. We are tracing position i -> where element at i belongs -> where element at that pos belongs...
+                // The element at `current` belongs at `tiles[current].correctId`.
+                // Who is at that target position? `tiles[  tiles[current].correctId  ]` ?
+                // Let's verify standard algorithm.
+                // We want to sort array. A swap (i, j) changes permutation sign.
+                // Min Swaps = N - Cycles.
+                // Cycle: x -> P[x] -> P[P[x]] ...
+                // Here P[i] is "Where element at i belongs". No.
+                // P[i] should be "What element is at position i". 
+                // Let's take `tiles`. `tiles[i]` is the Tile object at index `i`.
+                // `tiles[i].correctId` tells us this Tile belongs at index `correctId`.
+                // So if we have [Tile(0), Tile(1)] -> P=[0, 1].
+                // If we have [Tile(1), Tile(0)] -> P=[1, 0].
+                // Decomposition of [1, 0]: index 0 has 1. 1 belongs to 1. Index 1 has 0. 0 belongs to 0.
+                // Cycle: 0 -> has 1 -> go to index 1 -> has 0 -> go to index 0. Closed. (0 1).
+                
+                val targetPos = tiles[current].correctId
+                // We must move to the index `targetPos`.
+                current = targetPos
+            }
+            cycles++
+        }
+        return n - cycles
     }
 }
