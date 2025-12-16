@@ -127,4 +127,5 @@
     <string name="min_moves">MIN HAMLE: %1$d</string>
     <string name="best_time_fmt">EN İYİ SÜRE  : %1$02d:%2$02d</string>
     <string name="best_moves_fmt">EN İYİ HAMLE: %1$d</string>
+    <string name="vibration">Titreşim</string>
 </resources>

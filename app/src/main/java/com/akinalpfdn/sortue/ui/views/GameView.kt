@@ -108,6 +108,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
     val bestTime by vm.bestTime.collectAsState()
     val bestMoves by vm.bestMoves.collectAsState()
     val gameMode by vm.gameMode.collectAsState()
+    val isHapticsEnabled by vm.isHapticsEnabled.collectAsState()
 
     var showAbout by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
@@ -343,6 +344,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                                 index = index,
                                 gridWidth = gridDimension,
                                 showCheck = isLockingEnabled, // Pass locking state
+                                isHapticsEnabled = isHapticsEnabled,
                                 modifier = Modifier
                                     .onGloballyPositioned { coordinates ->
                                         itemBounds[tile.id] = coordinates.boundsInRoot()
@@ -561,7 +563,9 @@ fun GameView(vm: GameViewModel = viewModel()) {
 
         if (showSettings) {
              SettingsOverlay(
-                 onDismiss = { showSettings = false }
+                 onDismiss = { showSettings = false },
+                 isHapticsEnabled = isHapticsEnabled,
+                 onHapticsChange = { vm.toggleHaptics(it) }
              )
         }
 

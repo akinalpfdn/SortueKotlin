@@ -29,6 +29,12 @@ import androidx.compose.ui.unit.dp
 import com.akinalpfdn.sortue.models.GameStatus
 import com.akinalpfdn.sortue.models.Tile
 import kotlinx.coroutines.delay
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun TileView(
@@ -40,8 +46,10 @@ fun TileView(
     gridWidth: Int,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    showCheck: Boolean = true // New parameter to control check icon and visual locking
+    showCheck: Boolean = true,
+    isHapticsEnabled: Boolean = true
 ) {
+    val context = LocalContext.current
     val x = index % gridWidth
     val y = index / gridWidth
     val delay = (x + y) * 50
@@ -73,6 +81,27 @@ fun TileView(
             // Scale down slightly if locked to show it's "set"
             val targetScale = if (isSelected) 0.9f else (if (isLocked) 0.95f else 1.0f)
             scale.animateTo(targetScale)
+        }
+    }
+
+    LaunchedEffect(isLocked) {
+        if (isLocked && isHapticsEnabled) {
+             val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+                vibratorManager.defaultVibrator
+            } else {
+                @Suppress("DEPRECATION")
+                context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            }
+            
+            if (vibrator.hasVibrator()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK))
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator.vibrate(10) // Small click
+                }
+            }
         }
     }
 

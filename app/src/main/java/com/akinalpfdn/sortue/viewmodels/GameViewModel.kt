@@ -61,6 +61,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val _bestMoves = MutableStateFlow<Int?>(null)
     val bestMoves: StateFlow<Int?> = _bestMoves.asStateFlow()
 
+    private val _isHapticsEnabled = MutableStateFlow(true)
+    val isHapticsEnabled: StateFlow<Boolean> = _isHapticsEnabled.asStateFlow()
+
     private var timerJob: Job? = null
 
 
@@ -81,6 +84,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             // If no save for last mode, start fresh casual
             startNewGame(mode = GameMode.CASUAL, dimension = 4)
         }
+
+        _isHapticsEnabled.value = prefs.getBoolean("haptics_enabled", true)
     }
 
     private fun saveGameState() {
@@ -717,5 +722,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
             // No save found for this mode, start fresh
             startNewGame(dimension = size, mode = mode)
         }
+    }
+
+    fun toggleHaptics(enabled: Boolean) {
+        _isHapticsEnabled.value = enabled
+        prefs.edit().putBoolean("haptics_enabled", enabled).apply()
     }
 }

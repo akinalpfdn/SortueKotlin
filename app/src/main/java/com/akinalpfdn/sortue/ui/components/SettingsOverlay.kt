@@ -37,7 +37,9 @@ import com.akinalpfdn.sortue.utils.AudioManager
 
 @Composable
 fun SettingsOverlay(
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    isHapticsEnabled: Boolean,
+    onHapticsChange: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
     val audioManager = remember { AudioManager.getInstance(context) }
@@ -85,6 +87,26 @@ fun SettingsOverlay(
                         isMusicEnabled = it
                         audioManager.isMusicEnabled = it
                     },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color(0xFF3F51B5),
+                        checkedTrackColor = Color(0xFF3F51B5).copy(alpha = 0.5f)
+                    )
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.vibration), // Hardcoded for speed, can i18n later if asked
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.Black
+                )
+                Switch(
+                    checked = isHapticsEnabled,
+                    onCheckedChange = onHapticsChange,
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = Color(0xFF3F51B5),
                         checkedTrackColor = Color(0xFF3F51B5).copy(alpha = 0.5f)
