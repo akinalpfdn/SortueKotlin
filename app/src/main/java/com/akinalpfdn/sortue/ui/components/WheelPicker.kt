@@ -104,21 +104,8 @@ fun <T> WheelPicker(
         contentAlignment = Alignment.Center
     ) {
         
-        // Modern "Samsung-style" Dividers
-        HorizontalDivider(
-            modifier = Modifier
-                .fillMaxWidth()
-                .offset(y = -(itemHeight / 2)),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-            thickness = 1.dp
-        )
-        HorizontalDivider(
-            modifier = Modifier
-                .fillMaxWidth()
-                .offset(y = itemHeight / 2),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-            thickness = 1.dp
-        )
+        // Dividers removed for cleaner "floating" look as requested
+
 
         LazyColumn(
             state = listState,
@@ -131,53 +118,64 @@ fun <T> WheelPicker(
                 key = { index -> index } // Unique keys for the buffer
             ) { index ->
                 val actualItem = items[index % items.size]
-                val isSelected = index == centeredIndex
-
-                // 3D Drum Effect Calculations
-                // This creates the "Samsung Timer" cylindrical look
+                // We calculate "isSelected" based on the centeredIndex state we derived, 
+                // but for smooth visual transitions (scaling/alpha) during scroll, 
+                // we should rely on the distance calculation in graphicsLayer if possible, 
+                // OR use the isSelected boolean if we accept 'snap' visuals.
+                // User wants "Compact", "Current Bigger", "Opacity for others".
+                
                 Box(
                     modifier = Modifier
                         .height(itemHeight)
                         .fillMaxWidth()
                         .graphicsLayer {
-                            // Calculate distance from center in pixels
+                            val itemCenter = (index * itemHeightPx) + (itemHeightPx / 2)
                             val layoutInfo = listState.layoutInfo
-                            val viewportCenter = layoutInfo.viewportEndOffset / 2f
-                            // We use the item's current visual offset
-                            // Note: standard item block does not give absolute offset easily, 
-                            // but we can infer it if we assume stable layout.
-                            // However, using the "isSelected" state for simple boolean styling is safer/cheaper.
+                            val viewportCenter = layoutInfo.viewportEndOffset / 2f + layoutInfo.viewportStartOffset
                             
-                            // For true smooth rotation, we need the derived offset:
-                            // We accept a slight recomposition hit for the visual effect here.
-                            val distanceInPx = (index - centeredIndex) * itemHeightPx 
-                            // (Approximation for rotation calculation)
+                            // Calculate current absolute position of item center relative to viewport
+                            // This is tricky with LazyList as layoutInfo gives visible items.
+                            // Let's deduce distance from center based on index vs centeredIndex (approx stable)
+                            // or better: map the item's offset if visible.
                             
-                            // Visual parameters
+                            val visibleItemInfo = layoutInfo.visibleItemsInfo.find { it.index == index }
+                            val distanceFromCenter = if (visibleItemInfo != null) {
+                                val itemMid = visibleItemInfo.offset + (visibleItemInfo.size / 2f)
+                                abs(viewportCenter - itemMid)
+                            } else {
+                                // If not visible, effectively huge visual distance
+                                (visibleItemsCount * itemHeightPx)
+                            }
+
                             val maxDistance = (visibleItemsCount * itemHeightPx) / 2f
-                            val distance = abs(distanceInPx).coerceAtMost(maxDistance)
+                            val distanceFraction = (distanceFromCenter / maxDistance).coerceIn(0f, 1f)
                             
-                            // Rotation X: Items at top rotate down, items at bottom rotate up
-                            val rotationAngle = if (index < centeredIndex) 45f else -45f
-                            // Smooth interpolation based on distance
-                            val rotationFactor = (distance / maxDistance).coerceIn(0f, 1f)
+                            // Visual Transform Logic
+                            // Center (distance 0) -> Scale 1.1f, Alpha 1f
+                            // Edge (distance 1) -> Scale 0.8f, Alpha 0.3f
                             
-                            rotationX = rotationAngle * rotationFactor
-                            scaleX = 1f - (rotationFactor * 0.15f)
-                            scaleY = 1f - (rotationFactor * 0.15f)
-                            alpha = 1f - (rotationFactor * 0.7f)
+                            val scale = androidx.compose.ui.util.lerp(1.2f, 0.7f, distanceFraction)
+                            val alphaValue = androidx.compose.ui.util.lerp(1f, 0.3f, distanceFraction)
                             
-                            // Standardize selection exact center
-                            if (isSelected) {
-                                alpha = 1f
-                                rotationX = 0f
-                                scaleX = 1.1f
-                                scaleY = 1.1f
+                            scaleX = scale
+                            scaleY = scale
+                            alpha = alphaValue
+                            
+                            // 3D Rotation (optional, kept subtle)
+                            val rotationLimit = 25f
+                            val rotation = rotationLimit * (distanceFromCenter / (maxDistance)) 
+                            // Determine direction
+                            // We can't easily retrieve "direction" from just distance, need sign.
+                            // But usually rotationX is positive for top items, negative for bottom.
+                            // visibleItemInfo.offset < viewportCenter -> Top items
+                            if (visibleItemInfo != null) {
+                                val itemMid = visibleItemInfo.offset + (visibleItemInfo.size / 2f)
+                                rotationX = if (itemMid < viewportCenter) rotation else -rotation
                             }
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    itemContent(actualItem, isSelected)
+                    itemContent(actualItem, index == centeredIndex)
                 }
             }
         }

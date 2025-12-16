@@ -75,14 +75,16 @@ fun ModeSelectionView(
             WheelPicker(
                 items = modes,
                 initialIndex = 0,
-                visibleItemsCount = 5,
-                itemHeight = 60.dp,
+                visibleItemsCount = 3, // Changed from 5 to 3 for compactness
+                itemHeight = 50.dp, // Slightly smaller item height
                 onSelectionChanged = { selectedModeIndex = it }
             ) { mode, isSelected ->
+                 // Because WheelPicker now handles scaling in graphicsLayer, we just provide base text.
+                 // The "isSelected" param is still useful for color/weight changes.
                 Text(
                     text = mode.name,
-                    style = if (isSelected) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.titleMedium,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    style = MaterialTheme.typography.titleLarge, // Base size
+                    fontWeight = FontWeight.Bold,
                     color = if (isSelected) Color.Black else Color.Gray,
                     textAlign = TextAlign.Center,
                     letterSpacing = 2.sp
