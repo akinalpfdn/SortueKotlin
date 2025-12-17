@@ -183,7 +183,7 @@ fun ModeSelectionView(
             Text(
                 text = desc,
                 style = MaterialTheme.typography.bodyLarge,
-                color = Color.Gray,
+                color = if (currentMode == GameMode.PURE) Color(0xFFFF8080) else Color.Gray,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .padding(horizontal = 40.dp)

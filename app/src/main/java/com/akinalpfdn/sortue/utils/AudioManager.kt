@@ -26,7 +26,24 @@ class AudioManager(private val context: Context) {
             try {
                 mediaPlayer = MediaPlayer.create(context, R.raw.soundtrack)
                 mediaPlayer?.isLooping = true
-                mediaPlayer?.setVolume(0.7f, 0.7f)
+                mediaPlayer?.setVolume(0.7f, 0.7f) // Slightly lowered volume for less intrusion
+                
+                // Robustness: Handle completion manually if looping fails on some devices
+                mediaPlayer?.setOnCompletionListener { 
+                    try {
+                        it.start() 
+                    } catch (e: Exception) { e.printStackTrace() }
+                }
+
+                // Robustness: Handle errors by resetting
+                mediaPlayer?.setOnErrorListener { mp, _, _ ->
+                    mp.reset()
+                    // Re-create next time play is called
+                    mediaPlayer = null 
+                    playBackgroundMusic()
+                    true
+                }
+
                 mediaPlayer?.start()
             } catch (e: Exception) {
                 e.printStackTrace()

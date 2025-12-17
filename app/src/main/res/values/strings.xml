@@ -115,7 +115,7 @@
     <string name="challenge_desc">Adjust the grid size to match your mood, from casual 4x4 to expert 12x12.</string>
     <string name="casual_Text">Relax. No limits. Unlimited hints.</string>
     <string name="ladder_Text">Finish the level with given move count</string>
-    <string name="challenge_Text">zero help, challenge yourself</string>
+    <string name="challenge_Text">zero help, are you accepting the challenge?</string>
 
     <!-- Precision Mode Display -->
     <string name="level_display_precision">Level %1$d (%2$dx%3$d) - %4$d move left</string>
