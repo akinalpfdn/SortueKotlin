@@ -1,5 +1,6 @@
 package com.akinalpfdn.sortue.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -19,6 +20,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,6 +46,7 @@ fun SettingsOverlay(
     val context = LocalContext.current
     val audioManager = remember { AudioManager.getInstance(context) }
     var isMusicEnabled by remember { mutableStateOf(audioManager.isMusicEnabled) }
+    var volume by remember { mutableFloatStateOf(audioManager.musicVolume) }
 
     Box(
         modifier = Modifier
@@ -92,6 +95,30 @@ fun SettingsOverlay(
                         checkedTrackColor = Color(0xFF3F51B5).copy(alpha = 0.5f)
                     )
                 )
+            }
+
+            AnimatedVisibility(visible = isMusicEnabled) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                     Text(
+                        text = stringResource(R.string.volume),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.Gray,
+                         modifier = Modifier.padding(start = 2.dp)
+                    )
+                    Slider(
+                        value = volume,
+                        onValueChange = { 
+                            volume = it
+                            audioManager.musicVolume = it
+                        },
+                        valueRange = 0f..1f,
+                        colors = SliderDefaults.colors(
+                            thumbColor = Color(0xFF3F51B5),
+                            activeTrackColor = Color(0xFF3F51B5),
+                            inactiveTrackColor = Color(0xFF3F51B5).copy(alpha = 0.2f)
+                        )
+                    )
+                }
             }
 
             Row(

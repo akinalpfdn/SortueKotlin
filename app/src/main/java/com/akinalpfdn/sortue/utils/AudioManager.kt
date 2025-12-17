@@ -18,6 +18,13 @@ class AudioManager(private val context: Context) {
                 pauseBackgroundMusic()
             }
         }
+    
+    var musicVolume: Float
+        get() = prefs.getFloat("music_volume", 0.7f)
+        set(value) {
+            prefs.edit().putFloat("music_volume", value).apply()
+            mediaPlayer?.setVolume(value, value)
+        }
 
     fun playBackgroundMusic() {
         if (!isMusicEnabled) return
@@ -26,7 +33,7 @@ class AudioManager(private val context: Context) {
             try {
                 mediaPlayer = MediaPlayer.create(context, R.raw.soundtrack)
                 mediaPlayer?.isLooping = true
-                mediaPlayer?.setVolume(0.7f, 0.7f) // Slightly lowered volume for less intrusion
+                mediaPlayer?.setVolume(musicVolume, musicVolume)
                 
                 // Robustness: Handle completion manually if looping fails on some devices
                 mediaPlayer?.setOnCompletionListener { 

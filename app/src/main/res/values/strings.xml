@@ -131,4 +131,5 @@
     <string name="best_time_fmt">BEST TIME  : %1$02d:%2$02d</string>
     <string name="best_moves_fmt">BEST MOVES: %1$d</string>
     <string name="vibration">Vibration</string>
+    <string name="volume">Volume</string>
 </resources>
