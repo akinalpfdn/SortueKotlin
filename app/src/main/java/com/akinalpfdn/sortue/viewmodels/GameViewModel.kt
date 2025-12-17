@@ -80,11 +80,10 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val lastModeName = prefs.getString("last_active_mode", GameMode.CASUAL.name)
         val lastMode = try { GameMode.valueOf(lastModeName!!) } catch (e: Exception) { GameMode.CASUAL }
         
-        if (!loadGameState(lastMode)) {
-            // If no save for last mode, start fresh casual
-            startNewGame(mode = GameMode.CASUAL, dimension = 4)
-        }
-
+         // Always start at Menu, even if we loaded a game or started a new one
+        shuffleJob?.cancel()
+        winJob?.cancel()
+        _status.value = GameStatus.MENU
         _isHapticsEnabled.value = prefs.getBoolean("haptics_enabled", true)
     }
 
