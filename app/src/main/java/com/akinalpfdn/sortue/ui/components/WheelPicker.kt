@@ -70,13 +70,13 @@ fun <T> WheelPicker(
     val centeredIndex by remember {
         derivedStateOf {
             val layoutInfo = listState.layoutInfo
-            val viewportCenter = layoutInfo.viewportEndOffset / 2
+            val viewportCenter = (layoutInfo.viewportEndOffset + layoutInfo.viewportStartOffset) / 2
             
             // Find the item visually closest to the center
             val closestItem = layoutInfo.visibleItemsInfo
                 .minByOrNull { abs((it.offset + it.size / 2) - viewportCenter) }
             
-            closestItem?.index ?: 0
+            closestItem?.index ?: initialListIndex
         }
     }
 
