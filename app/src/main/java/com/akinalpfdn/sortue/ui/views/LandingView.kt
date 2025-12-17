@@ -72,7 +72,7 @@ fun LandingView(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 40.dp, bottom = 24.dp), // Reduced bottom padding
+                .padding(top = 40.dp, bottom = 64.dp), // Increased padding for small screens/nav bar
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // 1. Header (Skip Button)
@@ -417,7 +417,7 @@ fun WelcomeAnimation() {
 
     Box(
         modifier = Modifier
-            .size(200.dp)
+            .size(220.dp)
             .scale(scale)
             .shadow(20.dp, CircleShape, spotColor = Color(0xFF9C27B0).copy(alpha = 0.3f))
             .background(
@@ -427,7 +427,7 @@ fun WelcomeAnimation() {
             ),
         contentAlignment = Alignment.Center
     ) {
-        Box(modifier = Modifier.size(190.dp).background(Color.White, CircleShape))
+        Box(modifier = Modifier.size(210.dp).background(Color.White, CircleShape))
         Text(
             text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.displayLarge.copy(
