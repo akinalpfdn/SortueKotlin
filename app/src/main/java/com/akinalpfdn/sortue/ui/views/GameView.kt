@@ -309,7 +309,7 @@ fun GameView(vm: GameViewModel = viewModel()) {
                         if (gameMode == GameMode.CASUAL) {
                             CircleButton(
                                 icon = Icons.Filled.Shuffle,
-                                onClick = { vm.startNewGame() },
+                                onClick = { vm.startNewGame(forceRandomShuffle = true) },
                                 enabled = status != GameStatus.PREVIEW
                             )
                         }

@@ -189,7 +189,17 @@ fun ModeSelectionView(
                     .padding(horizontal = 40.dp)
                     .height(50.dp)
             )
-
+            if(currentMode !=GameMode.CASUAL) {
+                Text(
+                    text = stringResource(R.string.grid_info),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (currentMode == GameMode.PURE) Color(0xFFFF8080) else Color.Gray,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(horizontal = 40.dp)
+                        .height(50.dp)
+                )
+            }
             Spacer(modifier = Modifier.weight(1f))
 
             // Play Button (Mosaic Triangle)

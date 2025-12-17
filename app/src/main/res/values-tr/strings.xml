@@ -115,6 +115,7 @@
     <string name="casual_Text">Rahatça oyna, sınırsız ipucu ve sıfır limit</string>
     <string name="ladder_Text">Seviyeyi verilen hamle sayısında tamamla</string>
     <string name="challenge_Text">yardım yok, kendi sınırlarını zorla</string>
+    <string name="grid_info">Seviyelerde ilerledikçe ızgara boyutu artacak.</string>
 
     <!-- Precision Mode Display -->
     <string name="level_display_precision">Seviye %1$d (%2$dx%3$d) - %4$d hamlen kaldı</string>

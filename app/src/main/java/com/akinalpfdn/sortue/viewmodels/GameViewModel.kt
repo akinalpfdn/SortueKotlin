@@ -161,7 +161,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val elapsedTime: Long? = 0L
     )
 
-    fun startNewGame(dimension: Int? = null, mode: GameMode? = null, preserveColors: Boolean = false) {
+    fun startNewGame(dimension: Int? = null, mode: GameMode? = null, preserveColors: Boolean = false, forceRandomShuffle: Boolean = false) {
         dimension?.let { _gridDimension.value = it }
         mode?.let { _gameMode.value = it }
 
@@ -216,7 +216,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         val modeSeedOffset = (_gameMode.value.ordinal + 1) * 10000L
         val levelSeed = modeSeedOffset + _currentLevel.value
         // Use this single Random instance for all generation in this level
-        val levelRandom = Random(levelSeed)
+        val levelRandom = if (forceRandomShuffle) {
+            Random.Default 
+        } else {
+             Random(levelSeed)
+        }
 
         // 1. Generate corners
         val corners = if (preserveColors && currentCorners != null) {
@@ -264,7 +268,19 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         // Or we can create a FRESH deterministic Random for shuffle part:
         // val shuffleRandom = Random(levelSeed + 1) 
         // Let's use `levelRandom` to keep one continuous stream of randomness for the level.
-        val rnd = Random(levelSeed + 999) // Use a variant of seed for shuffle to ensure it's determined but distinct
+        // If forceRandomShuffle is true, levelRandom is Default, so it's random. 
+        // If deterministic, levelRandom continues its sequence.
+        // So we can just pass levelRandom (or a derived one). The original code used a variant.
+        // "val rnd = Random(levelSeed + 999)" -> This ignores the previous consumption of levelRandom.
+        // To respect forceRandomShuffle, we must use `levelRandom` OR a similarly branched logic.
+        
+        val rnd = if (forceRandomShuffle) {
+             Random.Default
+        } else {
+             Random(levelSeed + 999) 
+        }
+        
+        // 2. Shuffle board (async)
         // 2. Shuffle board (async)
         shuffleJob = viewModelScope.launch {
             delay(2500) // Preview duration
